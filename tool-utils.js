@@ -66,6 +66,11 @@ const _RELATED_TOOLS = {
     { url: '/charity-comparison-engine.html', icon: '⚖️',  name: 'Charity Comparison',      chip: 'Donors',     cls: 'tuc-d' },
     { url: '/impact-story-generator.html',    icon: '✍️',  name: 'Impact Story Generator',  chip: 'Nonprofits', cls: 'tuc-n' },
   ],
+  '/crisis-resource-finder.html': [
+    { url: '/community-needs-map.html',       icon: '🗺️', name: 'Community Needs Map',     chip: 'Nonprofits', cls: 'tuc-n' },
+    { url: '/volunteer-match.html',           icon: '🤝',  name: 'Volunteer Match',         chip: 'Volunteers', cls: 'tuc-v' },
+    { url: '/what-can-i-donate.html',         icon: '📦',  name: '"What Can I Donate?"',    chip: 'Donors',     cls: 'tuc-v' },
+  ],
 };
 
 /* ── Usage counter seeds ── */
@@ -81,6 +86,7 @@ const _USAGE_SEEDS = {
   '/impact-story-generator.html':     672,
   '/community-needs-map.html':        589,
   '/neighborhood-giving-map.html':    543,
+  '/crisis-resource-finder.html':     112,
 };
 
 /* ── Loading messages ── */
