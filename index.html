@@ -84,7 +84,7 @@
     <!-- ── Stat strip ── -->
     <div class="ait-stat-strip">
       <div class="ait-stat">
-        <span class="ait-stat-number">12</span>
+        <span class="ait-stat-number">13</span>
         <span class="ait-stat-label">Tools</span>
       </div>
       <div class="ait-stat-divider"></div>
@@ -115,7 +115,7 @@
       <div class="ait-journey-inner">
         <span class="ait-journey-icon">🗺️</span>
         <div class="ait-journey-text">
-          <strong id="aitJourneyLabel">You've explored 0 of 12 tools</strong>
+          <strong id="aitJourneyLabel">You've explored 0 of 13 tools</strong>
           <span id="aitJourneySubtext">Start your giving journey →</span>
         </div>
         <div class="ait-journey-bar-wrap">
@@ -135,9 +135,37 @@
     <!-- ── Filter tabs ── -->
     <div class="ait-tabs" role="tablist" aria-label="Filter tools by audience">
       <button class="ait-tab ait-tab-active" data-filter="all"        role="tab" aria-selected="true">All</button>
+      <button class="ait-tab"               data-filter="help"        role="tab" aria-selected="false">Get Help</button>
       <button class="ait-tab"               data-filter="donors"      role="tab" aria-selected="false">For Donors</button>
       <button class="ait-tab"               data-filter="volunteers"  role="tab" aria-selected="false">For Volunteers</button>
       <button class="ait-tab"               data-filter="nonprofits"  role="tab" aria-selected="false">For Nonprofits</button>
+    </div>
+
+    <!-- ── For People Seeking Help ── -->
+    <div class="ait-section" data-category="help">
+      <div class="ait-section-header">
+        <div class="ait-section-header-left">
+          <span class="ait-section-icon" style="background:rgba(220,38,38,0.15)">🆘</span>
+          <span class="ait-section-title">For People Seeking Help</span>
+          <span class="ait-section-count">1 tool</span>
+        </div>
+      </div>
+      <div class="ait-grid">
+
+        <a href="/crisis-resource-finder.html" class="ait-card ait-card-featured">
+          <div class="ait-card-top">
+            <span class="ait-chip ait-chip-help">Get Help</span>
+            <span class="ait-emoji-wrap" style="background:rgba(220,38,38,0.15)">🆘</span>
+            <span class="ait-badge ait-badge-new">✨ New</span>
+          </div>
+          <h2 class="ait-card-title">Crisis Resource Finder</h2>
+          <p class="ait-card-desc">Describe your situation → get routed to <strong>verified</strong> hotlines, food banks, shelters &amp; assistance programs. Anonymous, works offline, printable for case workers.</p>
+          <span class="ait-cta">Find help →</span>
+
+          <span class="ait-try-btn">Free &amp; anonymous →</span>
+        </a>
+
+      </div>
     </div>
 
     <!-- ── For Donors ── -->
@@ -477,6 +505,7 @@
     .ait-chip-donors     { background: rgba(59,110,248,0.12);  color: var(--blue-light); border: 1px solid rgba(59,110,248,0.25); }
     .ait-chip-volunteers { background: rgba(20,184,166,0.12);  color: #2dd4bf;           border: 1px solid rgba(20,184,166,0.25); }
     .ait-chip-nonprofits { background: rgba(139,92,246,0.12);  color: #a78bfa;           border: 1px solid rgba(139,92,246,0.25); }
+    .ait-chip-help       { background: rgba(220,38,38,0.12);   color: #f87171;           border: 1px solid rgba(220,38,38,0.25); }
 
     /* ── Card text ── */
     .ait-card-title { font-size: 0.95rem; font-weight: 700; color: var(--navy); line-height: 1.3; margin: 0; }
@@ -538,6 +567,7 @@
       '/charity-comparison-engine.html','/nonprofit-health-checker.html','/scam-nonprofit-detector.html',
       '/volunteer-match.html','/what-can-i-donate.html','/impact-story-generator.html',
       '/community-needs-map.html','/neighborhood-giving-map.html','/donation-tax-estimator.html',
+      '/crisis-resource-finder.html',
     ];
     const tried = toolPaths.filter(p => {
       const key = 'tuc_' + p.replace(/[^a-z0-9]/gi, '_');
@@ -572,6 +602,7 @@
       '/impact-story-generator.html':    672,
       '/community-needs-map.html':       589,
       '/neighborhood-giving-map.html':   543,
+      '/crisis-resource-finder.html':    112,
     };
     const NAMES = {
       '/what-would-x-do.html':           '"What Would $X Do?"',
@@ -585,6 +616,7 @@
       '/impact-story-generator.html':    'Impact Story Generator',
       '/community-needs-map.html':       'Community Needs Map',
       '/neighborhood-giving-map.html':   'Neighborhood Giving Map',
+      '/crisis-resource-finder.html':    'Crisis Resource Finder',
     };
     const entries = Object.keys(SEEDS).map(path => {
       const key = 'tuc_' + path.replace(/[^a-z0-9]/gi, '_');
@@ -622,6 +654,7 @@
     { name: '"Why Should I Give?"', desc: 'Get a personalized answer to overcome donation hesitation', url: '/why-should-i-give.html' },
     { name: 'Neighborhood Giving Map', desc: 'Find giving opportunities in your neighborhood', url: '/neighborhood-giving-map.html' },
     { name: '"What Can I Donate?"', desc: 'Discover non-cash donations you didn\'t know you could give', url: '/what-can-i-donate.html' },
+    { name: 'Crisis Resource Finder', desc: 'Get routed to verified hotlines, food banks, and assistance programs', url: '/crisis-resource-finder.html' },
   ];
   // Rotate weekly based on ISO week number
   const week = Math.floor((Date.now() / 1000 - 345600) / 604800);
