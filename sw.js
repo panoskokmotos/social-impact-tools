@@ -1,4 +1,4 @@
-const CACHE_NAME = 'panos-tools-v1';
+const CACHE_NAME = 'panos-tools-v2';
 const OFFLINE_URL = '/offline.html';
 
 const PRECACHE_ASSETS = [
@@ -6,6 +6,8 @@ const PRECACHE_ASSETS = [
   '/index.html',
   '/charity-comparison-engine.html',
   '/community-needs-map.html',
+  '/crisis-resource-finder.html',
+  '/data/crisis-resources.json',
   '/donation-tax-estimator.html',
   '/first-time-donor-coach.html',
   '/impact-story-generator.html',
