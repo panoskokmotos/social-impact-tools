@@ -11,6 +11,11 @@ const TOOL_PROMPT_VERSION = 2; // bump when system prompts change significantly
 
 /* ── Related tools map ── */
 const _RELATED_TOOLS = {
+  '/impact-compass.html': [
+    { url: '/what-would-x-do.html',           icon: '💸',  name: '"What Would $X Do?"',     chip: 'Donors',     cls: 'tuc-d' },
+    { url: '/volunteer-match.html',           icon: '🤝',  name: 'Volunteer Match',         chip: 'Volunteers', cls: 'tuc-v' },
+    { url: '/why-should-i-give.html',         icon: '❤️',  name: '"Why Should I Give?"',    chip: 'Donors',     cls: 'tuc-d' },
+  ],
   '/what-would-x-do.html': [
     { url: '/why-should-i-give.html',         icon: '❤️',  name: '"Why Should I Give?"',    chip: 'Donors',     cls: 'tuc-d' },
     { url: '/charity-comparison-engine.html', icon: '⚖️',  name: 'Charity Comparison',      chip: 'Donors',     cls: 'tuc-d' },
@@ -70,6 +75,7 @@ const _RELATED_TOOLS = {
 
 /* ── Usage counter seeds ── */
 const _USAGE_SEEDS = {
+  '/impact-compass.html':             137,
   '/what-would-x-do.html':           2847,
   '/why-should-i-give.html':         1923,
   '/first-time-donor-coach.html':    1456,
@@ -757,6 +763,7 @@ const _JOURNEY_MAP = {
   '/first-time-donor-coach.html':    { url: '/what-would-x-do.html',            icon: '💸', text: 'See exactly what your monthly budget does →' },
   '/charity-comparison-engine.html': { url: '/nonprofit-health-checker.html',   icon: '🔍', text: 'Now check the health of your favourite →' },
   '/volunteer-match.html':           { url: '/first-time-donor-coach.html',     icon: '🧭', text: 'Ready to give too? Build your giving plan →' },
+  '/impact-compass.html':            { url: '/what-would-x-do.html',            icon: '💸', text: 'Ready to act? See what a specific amount could do →' },
   '/what-would-x-do.html':           { url: '/why-should-i-give.html',          icon: '❤️', text: 'Still unsure why to give? Find your personal reason →' },
   '/why-should-i-give.html':         { url: '/first-time-donor-coach.html',     icon: '🗓', text: 'Ready to start? Build your first giving plan →' },
   '/what-can-i-donate.html':         { url: '/what-would-x-do.html',            icon: '💸', text: 'Also have cash to give? See its impact →' },
