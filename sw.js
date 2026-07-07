@@ -6,6 +6,8 @@ const PRECACHE_ASSETS = [
   '/index.html',
   '/charity-comparison-engine.html',
   '/community-needs-map.html',
+  '/crisis-resource-finder.html',
+  '/data/crisis-resources.json',
   '/donation-tax-estimator.html',
   '/first-time-donor-coach.html',
   '/impact-compass.html',

@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- include:gtag -->
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-790ERKMVS5"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-790ERKMVS5');
+  </script>
+<!-- /include:gtag -->
+  <!-- include:plausible -->
+  <script defer data-domain="panoskokmotos.com" src="https://plausible.io/js/script.js"></script>
+<!-- /include:plausible -->
+  <!-- include:posthog -->
+  <!-- PostHog Analytics -->
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+" (stub)"},o="init capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId setPersonPropertiesForFlags".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||(window.posthog=[]));
+    posthog.init("phc_WDGdxSf2xcEbL1c6vbAkrr8LJcJqrodykJKGKhom82L", {
+      api_host: "https://t.panoskokmotos.com",
+      ui_host: "https://us.posthog.com",
+      person_profiles: "identified_only"
+    });
+  </script>
+<!-- /include:posthog -->
+  <title>Crisis Resource Finder — Verified Help for Any Situation</title>
+  <meta name="description" content="Describe your situation → get routed to verified hotlines, food banks, shelters, and assistance programs. Every phone number is human-verified. Free, anonymous, works offline." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+  <script src="/shared.js"></script>
+  <script src="/tool-utils.js"></script>
+  <link rel="icon" href="/favicon.ico" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <link rel="canonical" href="https://tools.panoskokmotos.com/crisis-resource-finder.html" />
+  <meta property="og:url" content="https://tools.panoskokmotos.com/crisis-resource-finder.html" />
+  <meta property="og:image" content="https://tools.panoskokmotos.com/og-ai-tools.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://tools.panoskokmotos.com/og-ai-tools.png" />
+  <meta name="twitter:creator" content="@panoskokmotoss" />
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How does the Crisis Resource Finder work?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You describe what you're going through in your own words. AI figures out what kind of help fits — but every phone number, text line, and website shown comes from a human-verified list of official resources, never from AI."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is this a substitute for 911 or 988?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. If you are in immediate danger, call 911 (US) or 112 (Europe). If you are in emotional crisis or thinking about suicide, call or text 988 in the US. This tool helps you find the right ongoing support and assistance programs."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is what I type stored anywhere?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Nothing you type is saved on this device or on any server — it is only used to pick the right resources, then discarded. No account, no tracking of your situation."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does it work without internet?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Once you've visited the page, the verified resource list is saved for offline use — you can browse hotlines and programs by category even with no connection."
+      }
+    }
+  ]
+}
+</script>
+</head>
+<body class="tool-page">
+
+<!-- include:tool-header -->
+  <header class="tool-header">
+    <a href="/" class="tool-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      panoskokmotos.com
+    </a>
+  </header>
+<!-- /include:tool-header -->
+
+  <button type="button" id="quickExit" class="cr-quick-exit" title="Instantly leave this page">Leave this site ✕</button>
+
+  <main class="tool-main">
+
+    <!-- Static emergency banner: hardcoded HTML, no JS/data dependency, must survive
+         script failure, offline mode, and AI outage. Do not render this from the dataset. -->
+    <div class="cr-emergency" role="alert">
+      <strong>In immediate danger?</strong>
+      Call <a href="tel:911">911</a> (US) or <a href="tel:112">112</a> (Europe).
+      Suicidal or in emotional crisis? Call or text <a href="tel:988">988</a> (US) — free, 24/7.
+    </div>
+
+    <p class="tool-eyebrow">AI for Social Impact · Free Tool</p>
+    <h1 class="tool-title">Crisis Resource Finder</h1>
+    <p class="tool-desc">Describe what you're going through — AI figures out what kind of help fits, then shows you <strong>verified</strong> hotlines, food banks, shelters, and assistance programs. Every contact comes from a human-checked list of official sources, never from AI.</p>
+    <p class="cr-privacy">🔒 Anonymous. Nothing you type is stored — not on this device, not on any server.</p>
+
+    <!-- ── How it works ── -->
+    <div class="tool-how" aria-label="How this tool works">
+      <div class="tool-how-step">
+        <span class="tool-how-num">Step 1</span>
+        <span class="tool-how-title">Say what's going on</span>
+        <span class="tool-how-desc">In your own words — for yourself or someone you're helping.</span>
+      </div>
+      <div class="tool-how-step">
+        <span class="tool-how-num">Step 2</span>
+        <span class="tool-how-title">AI finds the right kind of help</span>
+        <span class="tool-how-desc">It reads your situation and picks the matching categories.</span>
+      </div>
+      <div class="tool-how-step">
+        <span class="tool-how-num">Step 3</span>
+        <span class="tool-how-title">Get verified contacts</span>
+        <span class="tool-how-desc">Real hotlines and programs from a human-verified list.</span>
+      </div>
+    </div>
+
+    <!-- id is deliberately NOT "toolForm": tool-utils.js autosaves #toolForm inputs to
+         localStorage and serializes them into the URL on submit. A crisis narrative must
+         never be persisted or leak into browser history. Keep this id. -->
+    <form class="tool-form" id="crisisForm">
+
+      <div class="tool-field">
+        <label class="tool-label" for="helpFor">Who needs help?</label>
+        <select id="helpFor" class="tool-input">
+          <option value="myself">Me</option>
+          <option value="someone I am helping">Someone I'm helping (family, friend, client)</option>
+        </select>
+      </div>
+
+      <div class="tool-field">
+        <label class="tool-label" for="situation">
+          What's going on?
+          <span class="tool-hint"> — plain words are fine, no forms or jargon</span>
+        </label>
+        <textarea
+          id="situation"
+          class="tool-input"
+          rows="4"
+          placeholder="e.g. I lost my job and can't pay rent this month. My kids need food."
+          required
+        ></textarea>
+      </div>
+
+      <div class="tool-field">
+        <label class="tool-label" for="location">
+          City, state or country
+          <span class="tool-hint"> — optional, helps pick local vs. national help</span>
+        </label>
+        <input
+          id="location"
+          class="tool-input"
+          type="text"
+          placeholder="e.g. Columbus, OH — or Athens, Greece"
+        />
+      </div>
+
+      <div class="tool-examples">
+        <span class="tool-examples-label">Try an example:</span>
+        <button type="button" class="tool-example-chip" data-fill-situation="I lost my job and can't pay rent this month. Utilities shut-off notice came yesterday." data-fill-location="Columbus, OH">Can't pay rent · US</button>
+        <button type="button" class="tool-example-chip" data-fill-situation="I'm a case worker. My client is fleeing her partner tonight with two kids and needs a safe place to stay." data-fill-location="Phoenix, AZ">Case worker · DV shelter</button>
+        <button type="button" class="tool-example-chip" data-fill-situation="Είμαι άνεργη, η οικογένειά μου χρειάζεται τρόφιμα και δεν ξέρω από πού να ξεκινήσω." data-fill-location="Αθήνα, Ελλάδα">Χρειάζομαι βοήθεια · GR</button>
+      </div>
+
+      <button type="submit" class="tool-submit" id="submitBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        Find Help Now
+      </button>
+    </form>
+
+    <div class="tool-loading" id="loading">
+      <div class="tool-spinner"></div>
+      <span id="loadingText">Reading your situation and matching verified resources…</span>
+    </div>
+
+    <div class="tool-error" id="errorBox"></div>
+
+    <!-- AI triage result: guidance text (sanitized) + verified resource cards (dataset only) -->
+    <section class="cr-result" id="crResult" hidden>
+      <div class="cr-result-head">
+        <h2 class="cr-result-title">Here's where to start</h2>
+        <button type="button" class="cr-print-btn" id="printBtn">🖨 Print this list</button>
+      </div>
+      <p class="cr-guidance" id="crGuidance"></p>
+      <ul class="cr-followups" id="crFollowups"></ul>
+      <div class="cr-cards" id="crCards"></div>
+      <p class="cr-verified-note">✓ All contact details above come from a <a href="https://github.com/panoskokmotos/social-impact-tools/blob/main/data/crisis-resources.json" target="_blank" rel="noopener">human-verified open dataset</a> — AI never generates phone numbers here.</p>
+      <div class="tool-result-actions">
+        <button class="tool-try-another" id="crReset">← Describe something else</button>
+      </div>
+    </section>
+
+    <!-- Manual browse: always available; the whole tool when offline or if AI fails -->
+    <section class="cr-browse" id="crBrowse">
+      <div class="cr-result-head">
+        <h2 class="cr-result-title">Or browse by category</h2>
+        <button type="button" class="cr-print-btn" id="printAllBtn">🖨 Print full list</button>
+      </div>
+      <div class="cr-offline-note" id="crOfflineNote" hidden>📡 You're offline — these verified numbers still work. Phone lines don't need internet.</div>
+      <div class="cr-region-row" id="crRegions" role="tablist" aria-label="Choose your region">
+        <button type="button" class="cr-region-btn active" data-region="US">🇺🇸 United States</button>
+        <button type="button" class="cr-region-btn" data-region="GR">🇬🇷 Ελλάδα / Greece</button>
+        <button type="button" class="cr-region-btn" data-region="OTHER">🌍 Anywhere else</button>
+      </div>
+      <div class="cr-cat-grid" id="crCatGrid"><span class="cr-cat-loading">Loading verified resources…</span></div>
+      <div class="cr-cards" id="crBrowseCards"></div>
+    </section>
+
+    <footer class="tool-footer">
+      Built by <a href="/" target="_blank">Panos Kokmotos</a> · Part of the
+      <a href="/">AI for Social Impact Lab</a> ·
+      Powered by Claude AI
+    </footer>
+    <div class="tool-usage-count" id="toolUsageCount"></div>
+    <div class="tool-related-wrap" id="toolRelated"></div>
+    <div class="tool-embed-wrap" id="toolEmbed"></div>
+  </main>
+
+  <style>
+    /* ── Crisis Resource Finder page-specific styles ── */
+    .cr-emergency {
+      background: linear-gradient(135deg, rgba(220,38,38,0.14), rgba(220,38,38,0.08));
+      border: 1.5px solid rgba(220,38,38,0.45);
+      border-radius: var(--radius, 12px);
+      padding: 0.9rem 1.1rem;
+      margin: 0 0 1.4rem;
+      font-size: 0.95rem;
+      line-height: 1.55;
+    }
+    .cr-emergency a { color: inherit; font-weight: 800; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+    .cr-quick-exit {
+      position: fixed; top: 10px; right: 10px; z-index: 9999;
+      background: var(--navy, #1e293b); color: #fff; border: 1px solid var(--border, #334155);
+      border-radius: 999px; padding: 0.45rem 0.9rem; font: inherit; font-size: 0.8rem; font-weight: 700;
+      cursor: pointer; opacity: 0.92;
+    }
+    .cr-quick-exit:hover { opacity: 1; }
+    .cr-privacy { font-size: 0.85rem; color: var(--text-muted, #94a3b8); margin: -0.4rem 0 1.2rem; }
+    .cr-result { margin-top: 1.6rem; }
+    .cr-result-head { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
+    .cr-result-title { font-size: 1.15rem; font-weight: 800; margin: 0; }
+    .cr-print-btn {
+      background: none; border: 1px solid var(--border, #334155); border-radius: 8px;
+      color: var(--text-muted, #94a3b8); font: inherit; font-size: 0.78rem; font-weight: 700;
+      padding: 0.35rem 0.7rem; cursor: pointer;
+    }
+    .cr-print-btn:hover { color: var(--text, #e2e8f0); }
+    .cr-guidance { font-size: 0.98rem; line-height: 1.65; }
+    .cr-followups { margin: 0.5rem 0 1rem; padding-left: 1.2rem; font-size: 0.9rem; line-height: 1.7; color: var(--text-muted, #94a3b8); }
+    .cr-cards { display: grid; gap: 0.8rem; margin: 1rem 0; }
+    .cr-card {
+      background: var(--card-bg, rgba(255,255,255,0.03)); border: 1px solid var(--border, #334155);
+      border-radius: var(--radius, 12px); padding: 1rem 1.1rem;
+    }
+    .cr-card-emergency { border-color: rgba(220,38,38,0.55); background: rgba(220,38,38,0.07); }
+    .cr-card-name { font-weight: 800; font-size: 1rem; margin: 0 0 0.25rem; display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+    .cr-card-verified { font-size: 0.68rem; font-weight: 700; color: #34d399; white-space: nowrap; }
+    .cr-card-desc { font-size: 0.88rem; color: var(--text-muted, #94a3b8); line-height: 1.55; margin: 0 0 0.7rem; }
+    .cr-card-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.45rem; }
+    .cr-call-btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: var(--blue, #3b6ef8); color: #fff; border-radius: 10px;
+      padding: 0.55rem 1rem; font-weight: 800; font-size: 0.95rem; text-decoration: none;
+    }
+    .cr-card-emergency .cr-call-btn { background: #dc2626; }
+    .cr-link-btn {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      border: 1px solid var(--border, #334155); border-radius: 10px; color: var(--text, #e2e8f0);
+      padding: 0.55rem 0.9rem; font-weight: 700; font-size: 0.85rem; text-decoration: none;
+    }
+    .cr-card-meta { font-size: 0.78rem; color: var(--text-muted, #94a3b8); line-height: 1.6; }
+    .cr-verified-note { font-size: 0.78rem; color: var(--text-muted, #94a3b8); }
+    .cr-verified-note a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+    .cr-browse { margin-top: 2.2rem; border-top: 1px solid var(--border, #334155); padding-top: 1.4rem; }
+    .cr-offline-note {
+      background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.4);
+      border-radius: var(--radius, 12px); padding: 0.7rem 1rem; font-size: 0.88rem; margin-bottom: 1rem;
+    }
+    .cr-region-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
+    .cr-region-btn {
+      background: none; border: 1px solid var(--border, #334155); border-radius: 999px;
+      color: var(--text-muted, #94a3b8); font: inherit; font-size: 0.82rem; font-weight: 700;
+      padding: 0.4rem 0.9rem; cursor: pointer;
+    }
+    .cr-region-btn.active { border-color: var(--blue, #3b6ef8); color: var(--text, #e2e8f0); }
+    .cr-cat-grid { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .cr-cat-chip {
+      background: var(--card-bg, rgba(255,255,255,0.03)); border: 1px solid var(--border, #334155);
+      border-radius: 999px; color: var(--text, #e2e8f0); font: inherit; font-size: 0.83rem; font-weight: 600;
+      padding: 0.45rem 0.85rem; cursor: pointer;
+    }
+    .cr-cat-chip.active { border-color: var(--blue, #3b6ef8); background: rgba(59,110,248,0.12); }
+    .cr-cat-loading { font-size: 0.85rem; color: var(--text-muted, #94a3b8); }
+    @media print {
+      .tool-header, .cr-quick-exit, .tool-how, .tool-form, .tool-loading, .tool-error,
+      .cr-region-row, .cr-cat-grid, .tool-result-actions, .cr-print-btn, .tool-footer,
+      .tool-usage-count, .tool-related-wrap, .tool-embed-wrap, .tool-examples { display: none !important; }
+      body { background: #fff !important; color: #000 !important; }
+      .cr-emergency { border: 2px solid #000; color: #000; }
+      .cr-card { border: 1px solid #000; break-inside: avoid; color: #000; }
+      .cr-card-desc, .cr-card-meta, .cr-guidance, .cr-followups { color: #222 !important; }
+      .cr-call-btn, .cr-link-btn { color: #000 !important; background: none !important; border: none; padding: 0; font-size: 1rem; }
+      a[href^="tel:"]::after { content: " (" attr(href) ")"; font-weight: 400; font-size: 0.8em; }
+    }
+  </style>
+
+  <script>
+    (function () {
+      'use strict';
+
+      /* ── Quick exit: replace() drops this page from back-button history ── */
+      document.getElementById('quickExit').addEventListener('click', function () {
+        window.location.replace('https://www.google.com/search?q=weather');
+      });
+
+      var DATA = null;
+      var currentRegion = 'US';
+      var PINNED_EMERGENCY = { US: ['us-911', 'us-988'], GR: ['eu-112'], OTHER: ['eu-112'] };
+
+      /* ── Load the verified dataset (sw.js precaches it, so this works offline) ── */
+      fetch('/data/crisis-resources.json')
+        .then(function (r) { return r.json(); })
+        .then(function (d) { DATA = d; renderCatGrid(); })
+        .catch(function () {
+          document.getElementById('crCatGrid').innerHTML =
+            '<span class="cr-cat-loading">Couldn\'t load the resource list. If you\'re in the US, dial <a href="tel:211">211</a> for local help, or <a href="tel:988">988</a> in crisis.</span>';
+        });
+
+      function escapeHtml(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+
+      /* Defense in depth: the model is instructed never to emit contact info, but if it
+         does, strip anything phone- or URL-shaped before rendering. 3-digit codes pass. */
+      function stripContacts(s) {
+        return String(s == null ? '' : s)
+          .replace(/https?:\/\/\S+/gi, '')
+          .replace(/\b[\w.+-]+@[\w-]+\.[\w.]+\b/g, '')
+          .replace(/\+?\d[\d\s().-]{6,}\d/g, '')
+          .replace(/\s{2,}/g, ' ').trim();
+      }
+
+      function regionFilter(r) {
+        var lvl = (r.scope && r.scope.level) || 'national';
+        var c = r.scope && r.scope.country;
+        if (currentRegion === 'US') return c === 'US';
+        if (currentRegion === 'GR') return c === 'GR' || lvl === 'international';
+        return lvl === 'international';
+      }
+
+      function trackClick(res, cat, urgency) {
+        try {
+          if (window.posthog && posthog.capture) {
+            posthog.capture('crisis_resource_click', { resource_id: res.id, category: cat || (res.categories && res.categories[0]), urgency: urgency || null });
+          }
+        } catch (e) {}
+      }
+
+      function cardHtml(r, emergency) {
+        var actions = '';
+        if (r.phone) actions += '<a class="cr-call-btn" data-rid="' + escapeHtml(r.id) + '" href="tel:' + escapeHtml(r.dial || String(r.phone).replace(/[^+\d]/g, '')) + '">📞 Call ' + escapeHtml(r.phone) + '</a>';
+        if (r.sms) actions += '<span class="cr-link-btn" style="cursor:default">💬 ' + escapeHtml(r.sms) + '</span>';
+        if (r.chat_url) actions += '<a class="cr-link-btn" data-rid="' + escapeHtml(r.id) + '" href="' + escapeHtml(r.chat_url) + '" target="_blank" rel="noopener">Chat online</a>';
+        if (r.url) actions += '<a class="cr-link-btn" data-rid="' + escapeHtml(r.id) + '" href="' + escapeHtml(r.url) + '" target="_blank" rel="noopener">Website ↗</a>';
+        var meta = [];
+        if (r.hours) meta.push('🕐 ' + escapeHtml(r.hours));
+        if (r.languages && r.languages.length) meta.push('🗣 ' + escapeHtml(r.languages.join(', ')));
+        if (r.notes) meta.push(escapeHtml(r.notes));
+        return '<div class="cr-card' + (emergency ? ' cr-card-emergency' : '') + '">' +
+          '<p class="cr-card-name">' + escapeHtml(r.name) +
+          ' <span class="cr-card-verified">✓ verified ' + escapeHtml(r.verified_date) + '</span></p>' +
+          '<p class="cr-card-desc">' + escapeHtml(r.description) + '</p>' +
+          '<div class="cr-card-actions">' + actions + '</div>' +
+          (meta.length ? '<p class="cr-card-meta">' + meta.join(' · ') + '</p>' : '') +
+          '</div>';
+      }
+
+      function bindCardClicks(container, cat, urgency) {
+        container.querySelectorAll('a[data-rid]').forEach(function (a) {
+          a.addEventListener('click', function () {
+            var res = DATA.resources.find(function (r) { return r.id === a.dataset.rid; });
+            if (res) trackClick(res, cat, urgency);
+          });
+        });
+      }
+
+      function resourcesForCats(cats, urgency) {
+        if (!DATA) return [];
+        var pool = DATA.resources.filter(regionFilter);
+        var picked = [];
+        var seen = {};
+        function add(r, em) { if (!seen[r.id]) { seen[r.id] = true; picked.push({ r: r, em: !!em }); } }
+        if (urgency === 'emergency') {
+          (PINNED_EMERGENCY[currentRegion] || []).forEach(function (id) {
+            var r = DATA.resources.find(function (x) { return x.id === id; });
+            if (r) add(r, true);
+          });
+        }
+        cats.forEach(function (tag) {
+          pool.filter(function (r) { return (r.categories || []).indexOf(tag) !== -1; })
+              .forEach(function (r) { add(r, false); });
+        });
+        /* "Not listed here?" tail: general navigation lines can route to anything local */
+        if (cats.indexOf('general-navigation') === -1) {
+          pool.filter(function (r) { return (r.categories || []).indexOf('general-navigation') !== -1; })
+              .forEach(function (r) { add(r, false); });
+        }
+        return picked;
+      }
+
+      /* ── Category browse grid (always available; the whole tool when offline) ── */
+      function renderCatGrid() {
+        var grid = document.getElementById('crCatGrid');
+        grid.innerHTML = DATA.categories.map(function (c) {
+          return '<button type="button" class="cr-cat-chip" data-tag="' + escapeHtml(c.tag) + '">' + escapeHtml(c.icon) + ' ' + escapeHtml(c.label) + '</button>';
+        }).join('');
+        grid.querySelectorAll('.cr-cat-chip').forEach(function (chip) {
+          chip.addEventListener('click', function () {
+            grid.querySelectorAll('.cr-cat-chip').forEach(function (x) { x.classList.remove('active'); });
+            chip.classList.add('active');
+            renderBrowseCards([chip.dataset.tag]);
+          });
+        });
+      }
+
+      function renderBrowseCards(cats) {
+        var box = document.getElementById('crBrowseCards');
+        var picked = resourcesForCats(cats, null);
+        box.innerHTML = picked.length
+          ? picked.map(function (p) { return cardHtml(p.r, p.em); }).join('')
+          : '<p class="cr-card-desc">No verified entries for this category in your region yet — try the "Not sure where to start" category, or switch region above.</p>';
+        bindCardClicks(box, cats[0], null);
+      }
+
+      document.getElementById('crRegions').addEventListener('click', function (e) {
+        var btn = e.target.closest('.cr-region-btn');
+        if (!btn) return;
+        this.querySelectorAll('.cr-region-btn').forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        currentRegion = btn.dataset.region;
+        var active = document.querySelector('.cr-cat-chip.active');
+        if (active) renderBrowseCards([active.dataset.tag]);
+      });
+
+      /* ── Offline handling ── */
+      function reflectOnline() {
+        var off = !navigator.onLine;
+        document.getElementById('crOfflineNote').hidden = !off;
+        document.getElementById('submitBtn').disabled = off;
+        if (off) showError("You're offline — the AI helper needs a connection, but every verified number below still works. Browse by category.");
+        else hideError();
+      }
+      window.addEventListener('online', reflectOnline);
+      window.addEventListener('offline', reflectOnline);
+      if (!navigator.onLine) reflectOnline();
+
+      /* ── AI triage flow ── */
+      var TAGS = ['emergency','mental-health','domestic-violence','sexual-assault','food','housing-shelter','utilities-financial','healthcare','substance-use','veterans','lgbtq','children-family','elderly','disaster','human-trafficking','legal','general-navigation'];
+
+      var systemPrompt = 'You are a compassionate triage assistant routing people to verified help resources. ' +
+        'Respond with ONLY valid JSON, no markdown, no code fences, exactly this shape:\n' +
+        '{"categories":["2-4 tags from: ' + TAGS.join(', ') + '"],' +
+        '"urgency":"low"|"medium"|"high"|"emergency",' +
+        '"country":"US"|"GR"|"OTHER",' +
+        '"guidance":"2-4 short, plain-language, calm sentences: what to do first and what to have ready when you call (ID, address, account numbers, etc.)",' +
+        '"followups":["1-3 short practical next steps"]}\n' +
+        'CRITICAL RULES: Never output any phone number, text line, URL, email, or organization contact details anywhere in the JSON — the app displays verified contacts itself. ' +
+        'If there is any hint of immediate danger to life (violence happening now, suicidal intent with a plan, medical emergency), set urgency to "emergency". ' +
+        'country is GR only if the situation is clearly in Greece; OTHER if clearly outside the US and Greece; otherwise US. ' +
+        'Use simple, warm, non-judgmental language. Never moralize.';
+
+      document.getElementById('crisisForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var situation = document.getElementById('situation').value.trim();
+        if (!situation) { showError('Please describe what\'s going on — a sentence is enough.'); return; }
+        if (!DATA) { showError('The resource list is still loading — try again in a second, or browse by category below.'); return; }
+
+        var userMessage = 'Who needs help: ' + document.getElementById('helpFor').value + '\n' +
+          'Situation: ' + situation + '\n' +
+          'Location: ' + (document.getElementById('location').value.trim() || 'not specified');
+
+        setLoading(true);
+        hideError();
+        document.getElementById('crResult').hidden = true;
+
+        callWorker(systemPrompt, userMessage).then(function (fullText) {
+          var parsed = null;
+          try {
+            parsed = JSON.parse(fullText.replace(/^```json\n?|```$/g, '').trim());
+          } catch (err) {}
+
+          if (!parsed || !Array.isArray(parsed.categories) || !parsed.categories.length) {
+            /* Never render raw model output — fall back to the manual picker */
+            showError("We couldn't process that automatically — pick the category that fits below, the same verified resources are there.");
+            document.getElementById('crBrowse').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return;
+          }
+
+          var cats = parsed.categories.filter(function (t) { return TAGS.indexOf(t) !== -1; });
+          if (!cats.length) cats = ['general-navigation'];
+          var urgency = ['low','medium','high','emergency'].indexOf(parsed.urgency) !== -1 ? parsed.urgency : 'medium';
+          if (['US','GR','OTHER'].indexOf(parsed.country) !== -1) {
+            currentRegion = parsed.country;
+            document.querySelectorAll('.cr-region-btn').forEach(function (b) {
+              b.classList.toggle('active', b.dataset.region === currentRegion);
+            });
+          }
+
+          document.getElementById('crGuidance').textContent = stripContacts(parsed.guidance);
+          var fu = Array.isArray(parsed.followups) ? parsed.followups.map(stripContacts).filter(Boolean) : [];
+          document.getElementById('crFollowups').innerHTML = fu.map(function (f) { return '<li>' + escapeHtml(f) + '</li>'; }).join('');
+
+          var picked = resourcesForCats(cats, urgency);
+          var cardsBox = document.getElementById('crCards');
+          cardsBox.innerHTML = picked.map(function (p) { return cardHtml(p.r, p.em); }).join('');
+          bindCardClicks(cardsBox, cats[0], urgency);
+
+          var result = document.getElementById('crResult');
+          result.hidden = false;
+          result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          notifyToolUsed(document.title);
+          try { if (window.posthog && posthog.capture) posthog.capture('crisis_triage_done', { categories: cats, urgency: urgency, region: currentRegion }); } catch (err) {}
+        }).catch(function (err) {
+          if (!err || !err._shown) {
+            showError("The AI helper isn't reachable right now — the verified resources below still work. Browse by category.");
+          }
+          document.getElementById('crBrowse').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }).finally(function () {
+          setLoading(false);
+        });
+      });
+
+      document.getElementById('crReset').addEventListener('click', function () {
+        document.getElementById('crResult').hidden = true;
+        document.getElementById('situation').value = '';
+        hideError();
+        document.getElementById('crisisForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.getElementById('situation').focus();
+      });
+
+      /* ── Print ── */
+      document.getElementById('printBtn').addEventListener('click', function () { window.print(); });
+      document.getElementById('printAllBtn').addEventListener('click', function () {
+        if (!DATA) return;
+        /* Render every category's resources for the current region, then print */
+        var box = document.getElementById('crBrowseCards');
+        var pool = DATA.resources.filter(regionFilter);
+        box.innerHTML = DATA.categories.map(function (c) {
+          var rs = pool.filter(function (r) { return (r.categories || []).indexOf(c.tag) !== -1; });
+          if (!rs.length) return '';
+          return '<h3 style="font-size:0.95rem;margin:1rem 0 0.4rem">' + escapeHtml(c.icon) + ' ' + escapeHtml(c.label) + '</h3>' +
+            rs.map(function (r) { return cardHtml(r, false); }).join('');
+        }).join('');
+        bindCardClicks(box, null, null);
+        setTimeout(function () { window.print(); }, 60);
+      });
+    })();
+  </script>
+
+  <!-- Service Worker registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
