@@ -11,6 +11,18 @@ const CX_STREAM_URL = CX_WORKER + '/api/v1/stream';
 const CX_TOOL_URL   = CX_WORKER + '/api/v1/tool';
 const CX_TOOLS_SITE = 'https://tools.panoskokmotos.com';
 
+/* ── Analytics ──────────────────────────────────────────
+   One helper fans a named funnel event out to whatever tracker is
+   loaded (PostHog / GA4 / Plausible). Without this, the site records
+   pageviews only and the read→act→give funnel is invisible. Never
+   throws — analytics must never break the app. */
+function cxTrack(event, props) {
+  const p = props || {};
+  try { if (window.posthog && posthog.capture) posthog.capture('compass_' + event, p); } catch {}
+  try { if (window.gtag) gtag('event', 'compass_' + event, p); } catch {}
+  try { if (window.plausible) window.plausible('compass_' + event, { props: p }); } catch {}
+}
+
 /* ── State store ────────────────────────────────────── */
 const CX_KEY = 'compass_state_v1';
 
@@ -295,6 +307,7 @@ function renderProblem(id) {
   const p = compassProblem(id);
   // replace, not assign — assigning pushes a history entry and traps Back
   if (!p) { location.replace('#/atlas'); return; }
+  cxTrack('problem_view', { problem: p.id });
   const done = !!cxState.understood[p.id];
   const u = p.understand;
 
@@ -346,11 +359,11 @@ function renderProblem(id) {
             <div class="cx-act-title">${OFFER_META[k].emoji} With your ${OFFER_META[k].label.toLowerCase()}</div>
             ${items.map(a => `<div class="cx-act-item">${esc(a)}</div>`).join('')}
           </div>` : '').join('')}
-        <div style="color:var(--text-dim);font-size:0.78rem;margin-top:6px">
-          Act now: <a href="${CX_TOOLS_SITE}/charity-comparison-engine.html?cause=${encodeURIComponent(p.name)}" target="_blank" rel="noopener">compare org types for this cause</a> ·
-          <a href="${CX_TOOLS_SITE}/volunteer-match.html?causes=${encodeURIComponent(p.name)}" target="_blank" rel="noopener">find a volunteer role</a> ·
-          <a href="${CX_TOOLS_SITE}/what-would-x-do.html" target="_blank" rel="noopener">see what $X does</a> ·
-          <a href="https://givelink.app/en" target="_blank" rel="noopener">Givelink</a>
+        <div style="color:var(--text-dim);font-size:0.78rem;margin-top:6px" id="cxActLinks">
+          Act now: <a href="${CX_TOOLS_SITE}/charity-comparison-engine.html?cause=${encodeURIComponent(p.name)}" target="_blank" rel="noopener" data-out="tool" data-tool="charity-comparison">compare org types for this cause</a> ·
+          <a href="${CX_TOOLS_SITE}/volunteer-match.html?causes=${encodeURIComponent(p.name)}" target="_blank" rel="noopener" data-out="tool" data-tool="volunteer-match">find a volunteer role</a> ·
+          <a href="${CX_TOOLS_SITE}/what-would-x-do.html" target="_blank" rel="noopener" data-out="tool" data-tool="what-would-x-do">see what $X does</a> ·
+          <a href="https://givelink.app/en" target="_blank" rel="noopener" data-out="givelink">Givelink</a>
         </div>
       </div>
     </div>
@@ -387,12 +400,14 @@ function renderProblem(id) {
     if (cxState.understood[p.id]) return;
     cxState.understood[p.id] = Date.now();
     cxSave();
+    cxTrack('understood', { problem: p.id });
     // Update in place — a full re-render would wipe an in-progress AI chat.
     this.classList.add('done');
     this.textContent = '✓ Understood';
   });
 
   document.getElementById('cxShareProblem').addEventListener('click', async function () {
+    cxTrack('share_click', { problem: p.id, where: 'problem' });
     // share the static page — per-problem title/preview, opens without JS
     const url = new URL('p/' + p.id + '.html', location.href).href;
     const text = `${p.emoji} ${p.name}: ${p.stat}. Understand it and see what actually works:`;
@@ -402,6 +417,15 @@ function renderProblem(id) {
       this.textContent = '✓ Copied';
       setTimeout(() => { this.textContent = '📤 Share'; }, 1600);
     } catch {}
+  });
+
+  // Outbound clicks to the tools suite and Givelink — the "give" end of the
+  // funnel. Delegated so a single listener covers all four links.
+  document.getElementById('cxActLinks').addEventListener('click', e => {
+    const a = e.target.closest('a[data-out]');
+    if (!a) return;
+    if (a.dataset.out === 'givelink') cxTrack('outbound_givelink_click', { problem: p.id, where: 'problem' });
+    else cxTrack('outbound_tool_click', { problem: p.id, tool: a.dataset.tool });
   });
 
   initProblemChat(p);
@@ -429,6 +453,7 @@ Rules: be warm, clear, honest and non-preachy. Use approximate, well-established
 
   async function ask(q) {
     if (!q) return;
+    cxTrack('ai_ask', { problem: p.id });
     errBox.classList.remove('visible');
     log.insertAdjacentHTML('beforeend', `<div class="cx-msg cx-msg-user">${esc(q)}</div>`);
     log.insertAdjacentHTML('beforeend', `<div class="cx-msg cx-msg-ai streaming"></div>`);
@@ -558,6 +583,7 @@ Time per week: about ${minutes} minutes`;
         steps,
       });
       cxSave();
+      cxTrack('plan_generated', { problem: problemId, offers: offers.join(',') || 'none', minutes, steps: steps.length });
       drawPlans();
       document.getElementById('cxPlans').scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (err) {
@@ -679,6 +705,7 @@ function renderJourney() {
   cxWireDailyDelivery();
 
   document.getElementById('cxShare').addEventListener('click', async () => {
+    cxTrack('share_click', { where: 'journey' });
     const text = `I'm using Impact Compass to understand the world's biggest problems and act on them — ${ids.length}/${total} problems understood, ${cxStepsDone()} action steps done. 🧭`;
     const url = location.origin + location.pathname;
     try {
@@ -710,7 +737,7 @@ function cxWireDailyDelivery() {
     btn.disabled = true; btn.textContent = 'Signing up…';
     const r = await CompassNotify.subscribeEmail(val);
     btn.disabled = false;
-    if (r.ok) { btn.textContent = '✓ You\'re signed up'; show('You\'ll get one problem a day by email. 🌍', true); }
+    if (r.ok) { cxTrack('email_signup', { where: 'journey' }); btn.textContent = '✓ You\'re signed up'; show('You\'ll get one problem a day by email. 🌍', true); }
     else { btn.textContent = '✉️ Email me daily'; show(REASON[r.reason] || REASON.server, false); }
   });
 
@@ -718,7 +745,7 @@ function cxWireDailyDelivery() {
     this.disabled = true; const prev = this.textContent; this.textContent = 'Enabling…';
     const r = await CompassNotify.subscribePush();
     this.disabled = false;
-    if (r.ok) { this.textContent = '🔔 Push on this device: on'; show('This device will get the day\'s problem. 📲', true); }
+    if (r.ok) { cxTrack('push_signup', { where: 'journey' }); this.textContent = '🔔 Push on this device: on'; show('This device will get the day\'s problem. 📲', true); }
     else { this.textContent = prev; show(REASON[r.reason] || REASON.server, false); }
   });
 }
