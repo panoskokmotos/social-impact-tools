@@ -5,6 +5,17 @@ is an approximation of published estimates, phrased as approximate, with named
 sources. This file records when the content was last audited, what was
 corrected, and which figures decay fastest — so honesty survives maintenance.
 
+## Languages
+
+- **English** — 25 problems, full articles, source of truth (`data.js`).
+- **Greek** (`data.el.js`, pages at `/compass/el/`) — **all 25 problems now
+  translated to full-article depth** (name, stat, trend, misconception, scale,
+  causes, sufferers, interventions with costs, actions). First-pass translation;
+  a native-speaker review before heavy promotion is still recommended. Regenerate
+  with `python3 compass/build-el.py` after any `data.js`/`data.el.js` change.
+  Adding a new problem to `data.js` means adding its Greek entry (summary +
+  `deep`) to `data.el.js`, or its Greek page falls back to English gracefully.
+
 ## Audit: July 2026 (independent two-auditor fact-check)
 
 All 25 entries were adversarially checked against the published evidence base
