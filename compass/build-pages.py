@@ -175,6 +175,12 @@ def page(p: dict, cats: dict, prev_p: dict, next_p: dict, analytics_html: str) -
 
     <div class="cx-sources">Rough figures for context, drawing on: {esc(' · '.join(p['sources']))}. Approximations, not citations. Last reviewed {TODAY}.</div>
 
+    <details class="cx-card" style="margin-top:22px">
+      <summary style="cursor:pointer;font-weight:800;font-size:0.86rem">📎 Embed this problem card on your site — free</summary>
+      <p style="color:var(--text-dim);font-size:0.8rem;margin:10px 0 8px">Paste this snippet anywhere. It renders a live card for this problem linking back here. Drop the <code>?problem=…</code> part to rotate a different problem every day.</p>
+      <textarea readonly onclick="this.select()" style="width:100%;min-height:74px;background:var(--bg-raise);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px;font-family:monospace;font-size:0.72rem">&lt;iframe src="{SITE}/compass/embed.html?problem={p['id']}" width="100%" height="330" style="max-width:480px;border:0" title="Impact Compass — {esc(p['name'])}" loading="lazy"&gt;&lt;/iframe&gt;</textarea>
+    </details>
+
     <nav class="cx-detail-ctas" aria-label="More problems" style="margin-top:26px">
       <a class="cx-btn cx-btn-ghost" href="{prev_p['id']}.html">← {prev_p['emoji']} {esc(prev_p['name'])}</a>
       <a class="cx-btn cx-btn-ghost" href="{next_p['id']}.html">{next_p['emoji']} {esc(next_p['name'])} →</a>
