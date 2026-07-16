@@ -49,6 +49,51 @@ def esc(s: str) -> str:
     return html.escape(str(s), quote=True)
 
 
+def _sentence(s: str) -> str:
+    s = str(s).strip()
+    if s and s[-1] not in ".!?":
+        s += "."
+    return s
+
+
+def _lc_first(s: str) -> str:
+    return s[0].lower() + s[1:] if s else s
+
+
+def faq(p: dict) -> list[tuple[str, str]]:
+    """Build 3 grounded Q&A from the curated on-page data, aimed at the
+    high-intent questions people actually search: how to help, what works
+    best, where to give. No new facts — just reframing what's already here."""
+    name = p["name"]
+    order = {"strong": 0, "promising": 1, "debated": 2}
+    ivs = sorted(p["interventions"], key=lambda iv: order.get(iv["evidence"], 3))
+    top = ivs[:2]
+    top_names = ", ".join(iv["name"] for iv in top)
+
+    offer_bits = []
+    for k in ("money", "time", "skills", "voice"):
+        items = p["actions"].get(k) or []
+        if items:
+            offer_bits.append(f"With your {OFFER_META[k][1]}, {_lc_first(_sentence(items[0]))}")
+    a1 = "There's a concrete step for whatever you can offer. " + " ".join(offer_bits)
+
+    a2 = "The approaches with the strongest evidence: " + " ".join(
+        f"{iv['name']}: {_sentence(iv['what'])} {_sentence(iv['cost'])}" for iv in top)
+
+    a3 = (
+        f"Impact Compass doesn't name individual charities. The higher-leverage path is to back the "
+        f"interventions that work best here ({top_names}) and to choose organizations by how transparently "
+        f"they deliver them. Compare organization types for this cause with the free tools linked above, or "
+        f"give useful items directly through Givelink."
+    )
+
+    return [
+        (f"How can I help with {name.lower()}?", a1),
+        (f"What is the most effective way to reduce {name.lower()}?", a2),
+        (f"Where should I donate to help with {name.lower()}?", a3),
+    ]
+
+
 def analytics() -> str:
     """Reuse the exact analytics snippets from the app shell."""
     shell = (COMPASS / "index.html").read_text()
@@ -59,9 +104,21 @@ def analytics() -> str:
 def page(p: dict, cats: dict, prev_p: dict, next_p: dict, analytics_html: str) -> str:
     cat = cats[p["category"]]
     url = f"{SITE}/compass/p/{p['id']}.html"
-    title = f"{p['name']} — scale, causes, and what actually works"
-    desc = f"{p['stat']}. Root causes, who suffers most, evidence-rated interventions with honest costs, and concrete ways to help."
+    title = f"How to Help With {p['name']}: What Works and Where to Give"
+    desc = f"{p['stat']}. See what evidence says actually reduces {p['name'].lower()}, the most effective interventions with honest costs, and where to focus your money, time, or skills to help."
     u = p["understand"]
+
+    qa = faq(p)
+    faq_html = "\n".join(
+        f'        <div class="cx-fact"><div class="cx-fact-k">{esc(q)}</div><div class="cx-fact-v">{esc(a)}</div></div>'
+        for q, a in qa)
+    faq_jsonld = json.dumps({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {"@type": "Question", "name": q,
+             "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in qa],
+    }, indent=2)
 
     interventions = "\n".join(f"""
         <div class="cx-card cx-iv-card">
@@ -121,6 +178,9 @@ def page(p: dict, cats: dict, prev_p: dict, next_p: dict, analytics_html: str) -
   <script type="application/ld+json">
 {jsonld}
 </script>
+  <script type="application/ld+json">
+{faq_jsonld}
+</script>
 </head>
 <body>
   <header class="cx-topbar">
@@ -179,6 +239,13 @@ def page(p: dict, cats: dict, prev_p: dict, next_p: dict, analytics_html: str) -
 
     <div class="cx-detail-ctas">
       <a class="cx-btn" href="../#/problem/{p['id']}">🧭 Explore this in the app — AI deep-dive &amp; action plan</a>
+    </div>
+
+    <div class="cx-section">
+      <div class="cx-section-label">❓ Questions people ask</div>
+      <div class="cx-card">
+{faq_html}
+      </div>
     </div>
 
     <div class="cx-sources">Rough figures for context, drawing on: {esc(' · '.join(p['sources']))}. Approximations, not citations. Last reviewed {TODAY}.</div>

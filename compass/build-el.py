@@ -46,6 +46,55 @@ def esc(s: str) -> str:
     return html.escape(str(s), quote=True)
 
 
+def _sentence(s: str) -> str:
+    s = str(s).strip()
+    if s and s[-1] not in ".!?;·":
+        s += "."
+    return s
+
+
+def _lc_first(s: str) -> str:
+    return s[0].lower() + s[1:] if s else s
+
+
+def faq_el(e: dict) -> list[tuple[str, str]]:
+    """Greek Q&A grounded in the deep article — aimed at the questions people
+    actually search: how to help, what works best, where to give. Only built
+    for problems with a full Greek article; returns [] otherwise."""
+    d = e.get("deep")
+    if not d:
+        return []
+    name = e["name"]
+    order = {"strong": 0, "promising": 1, "debated": 2}
+    pairs = list(zip(d["interventions"], e["en"]["interventions"]))
+    pairs.sort(key=lambda pr: order.get(pr[1]["evidence"], 3))
+    top = pairs[:2]
+    top_names = ", ".join(iv["name"] for iv, _ in top)
+
+    offer_bits = []
+    for k in ("money", "time", "skills", "voice"):
+        items = d["actions"].get(k) or []
+        if items:
+            offer_bits.append(f"Με τη/τον {OFFER_EL[k][1]} σου, {_lc_first(_sentence(items[0]))}")
+    a1 = "Υπάρχει ένα συγκεκριμένο βήμα για ό,τι μπορείς να προσφέρεις. " + " ".join(offer_bits)
+
+    a2 = "Οι προσεγγίσεις με τα ισχυρότερα στοιχεία: " + " ".join(
+        f"{iv['name']}: {_sentence(iv['what'])} {_sentence(iv['cost'])}" for iv, _ in top)
+
+    a3 = (
+        f"Η Πυξίδα Αντικτύπου δεν προτείνει συγκεκριμένες οργανώσεις. Ο πιο ουσιαστικός δρόμος είναι να στηρίξεις "
+        f"τις παρεμβάσεις που λειτουργούν καλύτερα εδώ ({top_names}) και να επιλέξεις οργανισμούς με βάση τη "
+        f"διαφάνεια με την οποία τις υλοποιούν. Σύγκρινε τύπους οργανισμών για αυτόν τον σκοπό με τα δωρεάν "
+        f"εργαλεία παραπάνω, ή δώσε χρήσιμα αντικείμενα απευθείας μέσω Givelink."
+    )
+
+    return [
+        (f"Πώς μπορώ να βοηθήσω με το πρόβλημα «{name}»;", a1),
+        (f"Ποιος είναι ο πιο αποτελεσματικός τρόπος να μειωθεί το πρόβλημα «{name}»;", a2),
+        (f"Πού να κάνω δωρεά για το πρόβλημα «{name}»;", a3),
+    ]
+
+
 def analytics() -> str:
     shell = (COMPASS / "index.html").read_text()
     m = re.search(r"(<!-- Google tag \(gtag\.js\) -->[\s\S]*?person_profiles: \"identified_only\"\s*\}\);\s*</script>)", shell)
@@ -111,7 +160,7 @@ def deep_sections(e: dict) -> str:
     </div>"""
 
 
-def head(title: str, desc: str, canonical: str, en_alt: str, og_title: str, analytics_html: str) -> str:
+def head(title: str, desc: str, canonical: str, en_alt: str, og_title: str, analytics_html: str, extra_head: str = "") -> str:
     return f"""<!DOCTYPE html>
 <html lang="el">
 <head>
@@ -138,6 +187,7 @@ def head(title: str, desc: str, canonical: str, en_alt: str, og_title: str, anal
   <meta property="og:locale" content="el_GR" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:image" content="{SITE}/og-ai-tools.png" />
+  {extra_head}
 </head>
 <body>
   <header class="cx-topbar">
@@ -157,11 +207,34 @@ def head(title: str, desc: str, canonical: str, en_alt: str, og_title: str, anal
 def problem_page(e: dict, cats: dict, over: dict, prev_e: dict, next_e: dict, analytics_html: str) -> str:
     url = f"{SITE}/compass/el/{e['id']}.html"
     en_alt = f"{SITE}/compass/p/{e['id']}.html"
-    title = f"{e['name']} — το μέγεθος, οι αιτίες και τι πραγματικά βοηθά"
-    desc = f"{e['stat']}. Κατανόησε το πρόβλημα και δες πώς μπορείς να βοηθήσεις."
+    title = f"{e['name']}: πώς να βοηθήσεις και πού να κάνεις δωρεά"
+    desc = f"{e['stat']}. Δες τι πραγματικά μειώνει το πρόβλημα, τις πιο αποτελεσματικές παρεμβάσεις με ειλικρινές κόστος, και πού να εστιάσεις τα χρήματα, τον χρόνο ή τις δεξιότητές σου."
     cat = cats[e["category"]]
     cat_el = over["categories"][e["category"]]
     cause_q = quote(e["en_name"])  # tools match on the English cause name
+
+    qa = faq_el(e)
+    faq_section = ""
+    extra_head = ""
+    if qa:
+        rows = "\n".join(
+            f'        <div class="cx-fact"><div class="cx-fact-k">{esc(q)}</div><div class="cx-fact-v">{esc(a)}</div></div>'
+            for q, a in qa)
+        faq_section = f"""
+    <div class="cx-section">
+      <div class="cx-section-label">❓ Ερωτήσεις που κάνουν οι άνθρωποι</div>
+      <div class="cx-card">
+{rows}
+      </div>
+    </div>"""
+        faq_jsonld = json.dumps({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+                {"@type": "Question", "name": q,
+                 "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in qa],
+        }, ensure_ascii=False, indent=2)
+        extra_head = f'<script type="application/ld+json">\n{faq_jsonld}\n</script>'
 
     if e["deep"]:
         body = deep_sections(e)
@@ -176,7 +249,7 @@ def problem_page(e: dict, cats: dict, over: dict, prev_e: dict, next_e: dict, an
       <div class="cx-card cx-fact-mis"><div class="cx-fact-v">{esc(e['misconception'])}</div></div>
     </div>"""
 
-    return head(title, desc, url, en_alt, f"{e['emoji']} {e['name']} — Πυξίδα Αντικτύπου", analytics_html) + f"""
+    return head(title, desc, url, en_alt, f"{e['emoji']} {e['name']} — Πυξίδα Αντικτύπου", analytics_html, extra_head) + f"""
   <main class="cx-main">
     <div style="font-size:0.78rem;margin-bottom:14px"><a href="{en_alt}" style="color:var(--text-dim)">🌐 English</a></div>
     <div class="cx-detail-head">
@@ -191,6 +264,7 @@ def problem_page(e: dict, cats: dict, over: dict, prev_e: dict, next_e: dict, an
       </div>
     </div>
 {body}
+{faq_section}
     <div class="cx-section">
       <div class="cx-section-label">🧭 Δράσε τώρα & πήγαινε βαθύτερα</div>
       <div class="cx-card">
