@@ -101,6 +101,45 @@ def analytics() -> str:
     return m.group(1) if m else ""
 
 
+def email_capture(src: str) -> str:
+    """Front-door email capture. Reuses the app's CompassNotify.subscribeEmail
+    (same notify worker), so it goes live the moment that worker is deployed
+    and degrades gracefully with a clear message until then."""
+    return f"""
+    <div class="cx-section">
+      <div class="cx-card">
+        <div class="cx-section-label">✉️ One world problem a week</div>
+        <p style="color:var(--text-dim);font-size:0.9rem;margin-bottom:12px">Get one problem, and one thing that actually works against it, in your inbox. Free, once a week, unsubscribe anytime.</p>
+        <form class="cx-capture" data-src="{esc(src)}" data-ok="You're in — look out for the first one soon. 🌍" data-err="Couldn't sign you up just now. Please try again in a moment." data-invalid="That email doesn't look right." style="display:flex;flex-wrap:wrap;gap:8px">
+          <input type="email" required placeholder="you@example.com" autocomplete="email" class="cx-input" style="flex:1;min-width:200px" aria-label="Your email" />
+          <button class="cx-btn" type="submit">Subscribe</button>
+        </form>
+        <div class="cx-capture-msg" style="margin-top:10px;font-size:0.85rem" role="status"></div>
+      </div>
+    </div>"""
+
+
+CAPTURE_SCRIPT = """  <script src="../notify.js"></script>
+  <script>
+  (function(){
+    function track(ev,p){try{if(window.posthog&&posthog.capture)posthog.capture('compass_'+ev,p||{})}catch(e){}try{if(window.gtag)gtag('event','compass_'+ev,p||{})}catch(e){}try{if(window.plausible)plausible('compass_'+ev,{props:p||{}})}catch(e){}}
+    document.querySelectorAll('.cx-capture').forEach(function(f){
+      f.addEventListener('submit',function(e){
+        e.preventDefault();
+        var input=f.querySelector('input[type=email]');
+        var msg=f.parentNode.querySelector('.cx-capture-msg');
+        var btn=f.querySelector('button');btn.disabled=true;
+        Promise.resolve(window.CompassNotify?CompassNotify.subscribeEmail((input.value||'').trim()):{ok:false,reason:'server'}).then(function(r){
+          if(r.ok){track('email_signup',{where:f.dataset.src});msg.textContent=f.dataset.ok;msg.style.color='var(--green)';f.style.display='none';}
+          else{btn.disabled=false;msg.textContent=(r.reason==='invalid'?f.dataset.invalid:f.dataset.err);msg.style.color='var(--red)';}
+        });
+      });
+    });
+  })();
+  </script>
+"""
+
+
 def page(p: dict, cats: dict, prev_p: dict, next_p: dict, analytics_html: str) -> str:
     cat = cats[p["category"]]
     url = f"{SITE}/compass/p/{p['id']}.html"
@@ -261,7 +300,7 @@ def page(p: dict, cats: dict, prev_p: dict, next_p: dict, analytics_html: str) -
 {faq_html}
       </div>
     </div>
-
+{email_capture('problem')}
     <div class="cx-sources">Rough figures for context, drawing on: {esc(' · '.join(p['sources']))}. Approximations, not citations. Last reviewed {TODAY}.</div>
 
     <details class="cx-card" style="margin-top:22px">
@@ -277,7 +316,7 @@ def page(p: dict, cats: dict, prev_p: dict, next_p: dict, analytics_html: str) -
 
     <div class="cx-footer">Impact Compass · built by <a href="https://panoskokmotos.com">Panos Kokmotos</a> · part of the <a href="{SITE}/">AI for Social Impact tools</a> and a sibling of <a href="https://givelink.app/en">Givelink</a> · powered by Claude AI</div>
   </main>
-</body>
+{CAPTURE_SCRIPT}</body>
 </html>
 """
 
@@ -324,10 +363,11 @@ def index_page(problems: list[dict], cats: dict, analytics_html: str) -> str:
     <p class="cx-eyebrow">The Problem Atlas</p>
     <h1 class="cx-h1">{len(problems)} problems worth understanding</h1>
     <p class="cx-sub">Each entry: the honest scale, root causes, who suffers, a misconception corrected, evidence-rated interventions, and concrete ways to help.</p>
+{email_capture('atlas-hub')}
     <div class="cx-atlas" style="margin-top:22px">{items}</div>
     <div class="cx-footer">Impact Compass · built by <a href="https://panoskokmotos.com">Panos Kokmotos</a> · powered by Claude AI</div>
   </main>
-</body>
+{CAPTURE_SCRIPT}</body>
 </html>
 """
 

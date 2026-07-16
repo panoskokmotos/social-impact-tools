@@ -177,6 +177,18 @@
         <div class="cx-fact"><div class="cx-fact-k">Πού να κάνω δωρεά για το πρόβλημα «Κλιματική Αλλαγή»;</div><div class="cx-fact-v">Η Πυξίδα Αντικτύπου δεν προτείνει συγκεκριμένες οργανώσεις. Ο πιο ουσιαστικός δρόμος είναι να στηρίξεις τις παρεμβάσεις που λειτουργούν καλύτερα εδώ (Ανάπτυξη &amp; καινοτομία καθαρής ενέργειας, Πολιτική &amp; συνηγορία) και να επιλέξεις οργανισμούς με βάση τη διαφάνεια με την οποία τις υλοποιούν. Σύγκρινε τύπους οργανισμών για αυτόν τον σκοπό με τα δωρεάν εργαλεία παραπάνω, ή δώσε χρήσιμα αντικείμενα απευθείας μέσω Givelink.</div></div>
       </div>
     </div>
+
+    <div class="cx-section">
+      <div class="cx-card">
+        <div class="cx-section-label">✉️ Ένα παγκόσμιο πρόβλημα την εβδομάδα</div>
+        <p style="color:var(--text-dim);font-size:0.9rem;margin-bottom:12px">Λάβε ένα πρόβλημα, και κάτι που πραγματικά λειτουργεί απέναντί του, στο inbox σου. Δωρεάν, μία φορά την εβδομάδα, διαγραφή όποτε θες.</p>
+        <form class="cx-capture" data-src="problem" data-ok="Έγινε — περίμενε το πρώτο σύντομα. 🌍" data-err="Δεν έγινε η εγγραφή αυτή τη στιγμή. Δοκίμασε ξανά σε λίγο." data-invalid="Αυτό το email δεν φαίνεται σωστό." style="display:flex;flex-wrap:wrap;gap:8px">
+          <input type="email" required placeholder="onoma@email.com" autocomplete="email" class="cx-input" style="flex:1;min-width:200px" aria-label="Το email σου" />
+          <button class="cx-btn" type="submit">Εγγραφή</button>
+        </form>
+        <div class="cx-capture-msg" style="margin-top:10px;font-size:0.85rem" role="status"></div>
+      </div>
+    </div>
     <div class="cx-section">
       <div class="cx-section-label">🧭 Δράσε τώρα & πήγαινε βαθύτερα</div>
       <div class="cx-card">
@@ -199,5 +211,23 @@
     <div class="cx-sources" style="margin-top:22px">Οι αριθμοί είναι κατά προσέγγιση, από δημόσιες πηγές. Πρώτη μετάφραση — υπό αναθεώρηση.</div>
     <div class="cx-footer">Πυξίδα Αντικτύπου · από τον <a href="https://panoskokmotos.com">Πάνο Κοκμοτό</a> · μέρος των <a href="https://tools.panoskokmotos.com/">εργαλείων AI for Social Impact</a> · με τη δύναμη του Claude AI</div>
   </main>
+  <script src="../notify.js"></script>
+  <script>
+  (function(){
+    function track(ev,p){try{if(window.posthog&&posthog.capture)posthog.capture('compass_'+ev,p||{})}catch(e){}try{if(window.gtag)gtag('event','compass_'+ev,p||{})}catch(e){}try{if(window.plausible)plausible('compass_'+ev,{props:p||{}})}catch(e){}}
+    document.querySelectorAll('.cx-capture').forEach(function(f){
+      f.addEventListener('submit',function(e){
+        e.preventDefault();
+        var input=f.querySelector('input[type=email]');
+        var msg=f.parentNode.querySelector('.cx-capture-msg');
+        var btn=f.querySelector('button');btn.disabled=true;
+        Promise.resolve(window.CompassNotify?CompassNotify.subscribeEmail((input.value||'').trim()):{ok:false,reason:'server'}).then(function(r){
+          if(r.ok){track('email_signup',{where:f.dataset.src});msg.textContent=f.dataset.ok;msg.style.color='var(--green)';f.style.display='none';}
+          else{btn.disabled=false;msg.textContent=(r.reason==='invalid'?f.dataset.invalid:f.dataset.err);msg.style.color='var(--red)';}
+        });
+      });
+    });
+  })();
+  </script>
 </body>
 </html>

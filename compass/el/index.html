@@ -61,6 +61,18 @@
     <p class="cx-eyebrow">Ο Άτλας των Προβλημάτων</p>
     <h1 class="cx-h1">25 προβλήματα που αξίζει να καταλάβεις</h1>
     <p class="cx-sub">Για κάθε ένα: το πραγματικό του μέγεθος, η τάση, μια κοινή παρανόηση που διορθώνεται, και δρόμοι για να βοηθήσεις. Πλήρης ανάλυση και AI στην εφαρμογή.</p>
+
+    <div class="cx-section">
+      <div class="cx-card">
+        <div class="cx-section-label">✉️ Ένα παγκόσμιο πρόβλημα την εβδομάδα</div>
+        <p style="color:var(--text-dim);font-size:0.9rem;margin-bottom:12px">Λάβε ένα πρόβλημα, και κάτι που πραγματικά λειτουργεί απέναντί του, στο inbox σου. Δωρεάν, μία φορά την εβδομάδα, διαγραφή όποτε θες.</p>
+        <form class="cx-capture" data-src="atlas-hub" data-ok="Έγινε — περίμενε το πρώτο σύντομα. 🌍" data-err="Δεν έγινε η εγγραφή αυτή τη στιγμή. Δοκίμασε ξανά σε λίγο." data-invalid="Αυτό το email δεν φαίνεται σωστό." style="display:flex;flex-wrap:wrap;gap:8px">
+          <input type="email" required placeholder="onoma@email.com" autocomplete="email" class="cx-input" style="flex:1;min-width:200px" aria-label="Το email σου" />
+          <button class="cx-btn" type="submit">Εγγραφή</button>
+        </form>
+        <div class="cx-capture-msg" style="margin-top:10px;font-size:0.85rem" role="status"></div>
+      </div>
+    </div>
     <div class="cx-atlas" style="margin-top:22px"><a class="cx-card cx-problem-card" style="text-decoration:none;color:inherit" href="extreme-poverty.html"><div class="cx-problem-top"><span class="cx-problem-emoji">🌍</span><span class="cx-badge cx-badge-improving">↗ Βελτιώνεται</span></div><div class="cx-problem-name">Ακραία Φτώχεια</div><div class="cx-problem-stat">Περίπου 800 εκατομμύρια άνθρωποι ζουν με λιγότερα από 3,00 $ την ημέρα</div><div class="cx-problem-foot"><span class="cx-badge cx-badge-cat">🌾 Φτώχεια</span></div></a>
 <a class="cx-card cx-problem-card" style="text-decoration:none;color:inherit" href="malaria.html"><div class="cx-problem-top"><span class="cx-problem-emoji">🦟</span><span class="cx-badge cx-badge-improving">↗ Βελτιώνεται</span></div><div class="cx-problem-name">Ελονοσία</div><div class="cx-problem-stat">Περίπου 600.000 θάνατοι τον χρόνο — οι περισσότεροι παιδιά κάτω των πέντε</div><div class="cx-problem-foot"><span class="cx-badge cx-badge-cat">🩺 Υγεία</span></div></a>
 <a class="cx-card cx-problem-card" style="text-decoration:none;color:inherit" href="child-mortality.html"><div class="cx-problem-top"><span class="cx-problem-emoji">👶</span><span class="cx-badge cx-badge-improving">↗ Βελτιώνεται</span></div><div class="cx-problem-name">Παιδική Θνησιμότητα</div><div class="cx-problem-stat">Περίπου 5 εκατομμύρια παιδιά κάτω των πέντε πεθαίνουν κάθε χρόνο — τα περισσότερα από αποτρέψιμες αιτίες</div><div class="cx-problem-foot"><span class="cx-badge cx-badge-cat">🩺 Υγεία</span></div></a>
@@ -88,5 +100,23 @@
 <a class="cx-card cx-problem-card" style="text-decoration:none;color:inherit" href="ocean-health.html"><div class="cx-problem-top"><span class="cx-problem-emoji">🌊</span><span class="cx-badge cx-badge-worsening">↘ Επιδεινώνεται</span></div><div class="cx-problem-name">Υγεία των Ωκεανών</div><div class="cx-problem-stat">Περίπου 8–11 εκατομμύρια τόνοι πλαστικού εισέρχονται στον ωκεανό κάθε χρόνο· πάνω από το ένα τρίτο των ιχθυαποθεμάτων υπεραλιεύεται</div><div class="cx-problem-foot"><span class="cx-badge cx-badge-cat">🌱 Περιβάλλον</span></div></a></div>
     <div class="cx-footer">Πυξίδα Αντικτύπου · από τον <a href="https://panoskokmotos.com">Πάνο Κοκμοτό</a> · με τη δύναμη του Claude AI</div>
   </main>
+  <script src="../notify.js"></script>
+  <script>
+  (function(){
+    function track(ev,p){try{if(window.posthog&&posthog.capture)posthog.capture('compass_'+ev,p||{})}catch(e){}try{if(window.gtag)gtag('event','compass_'+ev,p||{})}catch(e){}try{if(window.plausible)plausible('compass_'+ev,{props:p||{}})}catch(e){}}
+    document.querySelectorAll('.cx-capture').forEach(function(f){
+      f.addEventListener('submit',function(e){
+        e.preventDefault();
+        var input=f.querySelector('input[type=email]');
+        var msg=f.parentNode.querySelector('.cx-capture-msg');
+        var btn=f.querySelector('button');btn.disabled=true;
+        Promise.resolve(window.CompassNotify?CompassNotify.subscribeEmail((input.value||'').trim()):{ok:false,reason:'server'}).then(function(r){
+          if(r.ok){track('email_signup',{where:f.dataset.src});msg.textContent=f.dataset.ok;msg.style.color='var(--green)';f.style.display='none';}
+          else{btn.disabled=false;msg.textContent=(r.reason==='invalid'?f.dataset.invalid:f.dataset.err);msg.style.color='var(--red)';}
+        });
+      });
+    });
+  })();
+  </script>
 </body>
 </html>

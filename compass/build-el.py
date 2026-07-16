@@ -160,6 +160,44 @@ def deep_sections(e: dict) -> str:
     </div>"""
 
 
+def email_capture_el(src: str) -> str:
+    """Greek front-door email capture, wired to the same notify worker via
+    CompassNotify.subscribeEmail. Live the moment that worker is deployed."""
+    return f"""
+    <div class="cx-section">
+      <div class="cx-card">
+        <div class="cx-section-label">✉️ Ένα παγκόσμιο πρόβλημα την εβδομάδα</div>
+        <p style="color:var(--text-dim);font-size:0.9rem;margin-bottom:12px">Λάβε ένα πρόβλημα, και κάτι που πραγματικά λειτουργεί απέναντί του, στο inbox σου. Δωρεάν, μία φορά την εβδομάδα, διαγραφή όποτε θες.</p>
+        <form class="cx-capture" data-src="{esc(src)}" data-ok="Έγινε — περίμενε το πρώτο σύντομα. 🌍" data-err="Δεν έγινε η εγγραφή αυτή τη στιγμή. Δοκίμασε ξανά σε λίγο." data-invalid="Αυτό το email δεν φαίνεται σωστό." style="display:flex;flex-wrap:wrap;gap:8px">
+          <input type="email" required placeholder="onoma@email.com" autocomplete="email" class="cx-input" style="flex:1;min-width:200px" aria-label="Το email σου" />
+          <button class="cx-btn" type="submit">Εγγραφή</button>
+        </form>
+        <div class="cx-capture-msg" style="margin-top:10px;font-size:0.85rem" role="status"></div>
+      </div>
+    </div>"""
+
+
+CAPTURE_SCRIPT = """  <script src="../notify.js"></script>
+  <script>
+  (function(){
+    function track(ev,p){try{if(window.posthog&&posthog.capture)posthog.capture('compass_'+ev,p||{})}catch(e){}try{if(window.gtag)gtag('event','compass_'+ev,p||{})}catch(e){}try{if(window.plausible)plausible('compass_'+ev,{props:p||{}})}catch(e){}}
+    document.querySelectorAll('.cx-capture').forEach(function(f){
+      f.addEventListener('submit',function(e){
+        e.preventDefault();
+        var input=f.querySelector('input[type=email]');
+        var msg=f.parentNode.querySelector('.cx-capture-msg');
+        var btn=f.querySelector('button');btn.disabled=true;
+        Promise.resolve(window.CompassNotify?CompassNotify.subscribeEmail((input.value||'').trim()):{ok:false,reason:'server'}).then(function(r){
+          if(r.ok){track('email_signup',{where:f.dataset.src});msg.textContent=f.dataset.ok;msg.style.color='var(--green)';f.style.display='none';}
+          else{btn.disabled=false;msg.textContent=(r.reason==='invalid'?f.dataset.invalid:f.dataset.err);msg.style.color='var(--red)';}
+        });
+      });
+    });
+  })();
+  </script>
+"""
+
+
 def head(title: str, desc: str, canonical: str, en_alt: str, og_title: str, analytics_html: str, extra_head: str = "") -> str:
     return f"""<!DOCTYPE html>
 <html lang="el">
@@ -280,6 +318,7 @@ def problem_page(e: dict, cats: dict, over: dict, prev_e: dict, next_e: dict, an
 {body}
 {share_html}
 {faq_section}
+{email_capture_el('problem')}
     <div class="cx-section">
       <div class="cx-section-label">🧭 Δράσε τώρα & πήγαινε βαθύτερα</div>
       <div class="cx-card">
@@ -302,7 +341,7 @@ def problem_page(e: dict, cats: dict, over: dict, prev_e: dict, next_e: dict, an
     <div class="cx-sources" style="margin-top:22px">Οι αριθμοί είναι κατά προσέγγιση, από δημόσιες πηγές. Πρώτη μετάφραση — υπό αναθεώρηση.</div>
     <div class="cx-footer">Πυξίδα Αντικτύπου · από τον <a href="https://panoskokmotos.com">Πάνο Κοκμοτό</a> · μέρος των <a href="{SITE}/">εργαλείων AI for Social Impact</a> · με τη δύναμη του Claude AI</div>
   </main>
-</body>
+{CAPTURE_SCRIPT}</body>
 </html>
 """
 
@@ -327,10 +366,11 @@ def hub_page(items: list[dict], cats: dict, over: dict, analytics_html: str) -> 
     <p class="cx-eyebrow">Ο Άτλας των Προβλημάτων</p>
     <h1 class="cx-h1">{len(items)} προβλήματα που αξίζει να καταλάβεις</h1>
     <p class="cx-sub">Για κάθε ένα: το πραγματικό του μέγεθος, η τάση, μια κοινή παρανόηση που διορθώνεται, και δρόμοι για να βοηθήσεις. Πλήρης ανάλυση και AI στην εφαρμογή.</p>
+{email_capture_el('atlas-hub')}
     <div class="cx-atlas" style="margin-top:22px">{cards}</div>
     <div class="cx-footer">Πυξίδα Αντικτύπου · από τον <a href="https://panoskokmotos.com">Πάνο Κοκμοτό</a> · με τη δύναμη του Claude AI</div>
   </main>
-</body>
+{CAPTURE_SCRIPT}</body>
 </html>
 """
 

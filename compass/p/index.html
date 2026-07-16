@@ -48,6 +48,18 @@
     <p class="cx-eyebrow">The Problem Atlas</p>
     <h1 class="cx-h1">25 problems worth understanding</h1>
     <p class="cx-sub">Each entry: the honest scale, root causes, who suffers, a misconception corrected, evidence-rated interventions, and concrete ways to help.</p>
+
+    <div class="cx-section">
+      <div class="cx-card">
+        <div class="cx-section-label">✉️ One world problem a week</div>
+        <p style="color:var(--text-dim);font-size:0.9rem;margin-bottom:12px">Get one problem, and one thing that actually works against it, in your inbox. Free, once a week, unsubscribe anytime.</p>
+        <form class="cx-capture" data-src="atlas-hub" data-ok="You're in — look out for the first one soon. 🌍" data-err="Couldn't sign you up just now. Please try again in a moment." data-invalid="That email doesn't look right." style="display:flex;flex-wrap:wrap;gap:8px">
+          <input type="email" required placeholder="you@example.com" autocomplete="email" class="cx-input" style="flex:1;min-width:200px" aria-label="Your email" />
+          <button class="cx-btn" type="submit">Subscribe</button>
+        </form>
+        <div class="cx-capture-msg" style="margin-top:10px;font-size:0.85rem" role="status"></div>
+      </div>
+    </div>
     <div class="cx-atlas" style="margin-top:22px"><a class="cx-card cx-problem-card" style="text-decoration:none;color:inherit" href="extreme-poverty.html"><div class="cx-problem-top"><span class="cx-problem-emoji">🌍</span><span class="cx-badge cx-badge-improving">↗ Improving</span></div><div class="cx-problem-name">Extreme Poverty</div><div class="cx-problem-stat">Roughly 800 million people live on less than $3.00 a day</div><div class="cx-problem-foot"><span class="cx-badge cx-badge-cat">🌾 Poverty</span></div></a>
 <a class="cx-card cx-problem-card" style="text-decoration:none;color:inherit" href="malaria.html"><div class="cx-problem-top"><span class="cx-problem-emoji">🦟</span><span class="cx-badge cx-badge-improving">↗ Improving</span></div><div class="cx-problem-name">Malaria</div><div class="cx-problem-stat">Roughly 600,000 deaths a year — most of them children under five</div><div class="cx-problem-foot"><span class="cx-badge cx-badge-cat">🩺 Health</span></div></a>
 <a class="cx-card cx-problem-card" style="text-decoration:none;color:inherit" href="child-mortality.html"><div class="cx-problem-top"><span class="cx-problem-emoji">👶</span><span class="cx-badge cx-badge-improving">↗ Improving</span></div><div class="cx-problem-name">Child Mortality</div><div class="cx-problem-stat">Roughly 5 million children under five die each year — most from preventable causes</div><div class="cx-problem-foot"><span class="cx-badge cx-badge-cat">🩺 Health</span></div></a>
@@ -75,5 +87,23 @@
 <a class="cx-card cx-problem-card" style="text-decoration:none;color:inherit" href="ocean-health.html"><div class="cx-problem-top"><span class="cx-problem-emoji">🌊</span><span class="cx-badge cx-badge-worsening">↘ Worsening</span></div><div class="cx-problem-name">Ocean Health</div><div class="cx-problem-stat">Roughly 8–11 million tonnes of plastic enter the ocean each year; over a third of fish stocks are overfished</div><div class="cx-problem-foot"><span class="cx-badge cx-badge-cat">🌱 Environment</span></div></a></div>
     <div class="cx-footer">Impact Compass · built by <a href="https://panoskokmotos.com">Panos Kokmotos</a> · powered by Claude AI</div>
   </main>
+  <script src="../notify.js"></script>
+  <script>
+  (function(){
+    function track(ev,p){try{if(window.posthog&&posthog.capture)posthog.capture('compass_'+ev,p||{})}catch(e){}try{if(window.gtag)gtag('event','compass_'+ev,p||{})}catch(e){}try{if(window.plausible)plausible('compass_'+ev,{props:p||{}})}catch(e){}}
+    document.querySelectorAll('.cx-capture').forEach(function(f){
+      f.addEventListener('submit',function(e){
+        e.preventDefault();
+        var input=f.querySelector('input[type=email]');
+        var msg=f.parentNode.querySelector('.cx-capture-msg');
+        var btn=f.querySelector('button');btn.disabled=true;
+        Promise.resolve(window.CompassNotify?CompassNotify.subscribeEmail((input.value||'').trim()):{ok:false,reason:'server'}).then(function(r){
+          if(r.ok){track('email_signup',{where:f.dataset.src});msg.textContent=f.dataset.ok;msg.style.color='var(--green)';f.style.display='none';}
+          else{btn.disabled=false;msg.textContent=(r.reason==='invalid'?f.dataset.invalid:f.dataset.err);msg.style.color='var(--red)';}
+        });
+      });
+    });
+  })();
+  </script>
 </body>
 </html>
