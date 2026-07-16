@@ -470,7 +470,7 @@ const COMPASS_PROBLEMS = [
     stat: 'Roughly 260,000–290,000 women die each year from pregnancy and childbirth — almost all preventably',
     trend: { dir: 'improving', text: 'Deaths fell by roughly a third since 2000, but progress has stalled in recent years and reversed in some countries.' },
     understand: {
-      scale: 'A woman dies from pregnancy or childbirth roughly every two minutes. About 70% of deaths are in Sub-Saharan Africa; a woman\'s lifetime risk is around 1 in 40 in the highest-burden countries versus 1 in thousands in rich ones.',
+      scale: 'A woman dies from pregnancy or childbirth roughly every two minutes. About 70% of deaths are in Sub-Saharan Africa, where lifetime risk averages around 1 in 40 — and is worse still in the highest-burden countries — versus 1 in thousands in rich ones.',
       causes: 'Severe bleeding, hypertensive disorders, infection and unsafe abortion — all treatable. The deeper causes: births without skilled attendants, distance to emergency care, child marriage and early pregnancy.',
       sufferers: 'Poor and rural women, adolescent girls, and the babies and older children left behind — a mother\'s death cascades through a family.',
       misconception: '"Childbirth is just inherently dangerous." Rich countries cut maternal deaths by ~99% over a century. Every solution is known; what\'s missing is access.',
@@ -600,7 +600,7 @@ const COMPASS_PROBLEMS = [
     stat: 'Roughly 2.6 billion people — a third of humanity — remain offline',
     trend: { dir: 'improving', text: 'Connectivity keeps spreading, but growth has slowed: the remaining offline third is the hardest and least profitable to reach, and gender gaps persist.' },
     understand: {
-      scale: 'On the order of 2.6 billion people have never used the internet, overwhelmingly in poorer countries and rural areas. Coverage is no longer the main barrier — most of the offline live under a mobile signal they can\'t afford or can\'t use.',
+      scale: 'On the order of 2.6 billion people are offline — not using the internet at all — overwhelmingly in poorer countries and rural areas. Coverage is no longer the main barrier: most of the offline live under a mobile signal they can\'t afford or can\'t use.',
       causes: 'Device and data costs relative to income, low literacy and digital skills, electricity gaps, and social barriers — in South Asia and Africa women are far less likely to be online than men.',
       sufferers: 'Rural, poor, older and female populations — and increasingly, being offline compounds every other disadvantage, as banking, market prices, health information and government services move online.',
       misconception: '"The internet is basically everywhere now." A third of humanity has never been online; assuming universal connectivity quietly designs them out of modern life.',
@@ -652,7 +652,7 @@ const COMPASS_PROBLEMS = [
     stat: 'Roughly 8–11 million tonnes of plastic enter the ocean each year; over a third of fish stocks are overfished',
     trend: { dir: 'worsening', text: 'Plastic flows and ocean heat keep rising — but marine protected areas and managed fisheries show recovery is fast wherever we actually protect.' },
     understand: {
-      scale: 'The ocean feeds over 3 billion people their primary protein and absorbs most of the excess heat and a quarter of the CO₂ we emit. Meanwhile it takes on the order of 10 million tonnes of plastic a year, over a third of assessed fish stocks are overfished, and half of coral reefs are already gone or badly degraded.',
+      scale: 'The ocean supplies roughly a fifth of the animal protein eaten by over 3 billion people, and absorbs most of the excess heat and a quarter of the CO₂ we emit. Meanwhile it takes on the order of 10 million tonnes of plastic a year, over a third of assessed fish stocks are overfished, and half of coral reefs are already gone or badly degraded.',
       causes: 'Waste systems that leak (a large share of ocean plastic arrives via a relatively small number of rivers), industrial overfishing — much of it subsidized — abandoned fishing gear, warming and acidification from carbon emissions.',
       sufferers: 'Coastal and island communities who eat and earn from the sea first; small-scale fishers outcompeted by industrial fleets; and marine life on a scale that\'s hard to hold in mind.',
       misconception: '"The fix is cleaning up the garbage patch." Cleanup is the least effective end of the pipe: stopping flows — river interception, waste systems, fishing-gear rules — prevents far more per dollar, and roughly half the Great Pacific patch by mass is fishing gear, not straws.',
