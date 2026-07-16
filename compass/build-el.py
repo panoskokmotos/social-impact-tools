@@ -121,7 +121,7 @@ def head(title: str, desc: str, canonical: str, en_alt: str, og_title: str, anal
   {analytics_html}
   <title>{esc(title)}</title>
   <meta name="description" content="{esc(desc)}" />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../app.css" />
   <link rel="icon" href="../icon.svg" type="image/svg+xml" />
   <meta name="theme-color" content="#0a0f1e" />

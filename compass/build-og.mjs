@@ -24,9 +24,9 @@ function card(p) {
   const cat = COMPASS_CATEGORIES[p.category];
   return `<!DOCTYPE html><html><head><meta charset="utf8">
   <style>
-    @font-face { font-family:'PJ'; src:local('Plus Jakarta Sans'); }
+    @font-face { font-family:'PJ'; src:local('Manrope'); }
     *{margin:0;box-sizing:border-box}
-    body{width:1200px;height:630px;font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+    body{width:1200px;height:630px;font-family:'Manrope',system-ui,sans-serif;
       background:linear-gradient(150deg,#16224a,#0a0f1e);color:#e9edf8;padding:70px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
     .top{display:flex;align-items:center;gap:16px;color:#e9b64a;font-weight:800;font-size:26px;letter-spacing:0.12em;text-transform:uppercase}
     .emoji{font-size:150px;line-height:1}

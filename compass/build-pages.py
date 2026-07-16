@@ -99,7 +99,7 @@ def page(p: dict, cats: dict, prev_p: dict, next_p: dict, analytics_html: str) -
   <meta name="description" content="{esc(desc)}" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../app.css" />
   <link rel="icon" href="../icon.svg" type="image/svg+xml" />
   <meta name="theme-color" content="#0a0f1e" />
@@ -218,7 +218,7 @@ def index_page(problems: list[dict], cats: dict, analytics_html: str) -> str:
   {analytics_html}
   <title>The Problem Atlas — {len(problems)} of the world's biggest problems, explained honestly</title>
   <meta name="description" content="{len(problems)} major world problems: their scale, root causes, evidence-rated interventions with honest costs, and concrete ways to help. Part of Impact Compass." />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../app.css" />
   <link rel="icon" href="../icon.svg" type="image/svg+xml" />
   <meta name="robots" content="index, follow" />
