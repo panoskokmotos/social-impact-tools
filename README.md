@@ -26,4 +26,9 @@ understanding, reduce suffering, expand the reach of care. Self-contained
 - `compass/sw.js` — app-scoped service worker. **Bump `CACHE_NAME` whenever
   app.js/app.css/data.js change** — assets are cache-first, so without a bump
   existing users keep old files.
+- `compass/p/` — static, indexable page per problem (search + link previews;
+  the SPA's hash routes are invisible to crawlers). Generated, committed
+  output: **run `python3 compass/build-pages.py` after any data.js change** —
+  it re-renders all pages and refreshes the compass block in `sitemap.xml`.
+  In-app shares and the tools' `?cause=` deep links point at these pages.
 - Not wired into `build.py` partials — the app has its own chrome by design.

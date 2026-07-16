@@ -279,9 +279,9 @@ function renderProblem(id) {
             ${items.map(a => `<div class="cx-act-item">${esc(a)}</div>`).join('')}
           </div>` : '').join('')}
         <div style="color:var(--text-dim);font-size:0.78rem;margin-top:6px">
-          Companion tools: <a href="${CX_TOOLS_SITE}/what-would-x-do.html" target="_blank" rel="noopener">"What Would $X Do?"</a> ·
-          <a href="${CX_TOOLS_SITE}/charity-comparison-engine.html" target="_blank" rel="noopener">Charity Comparison</a> ·
-          <a href="${CX_TOOLS_SITE}/volunteer-match.html" target="_blank" rel="noopener">Volunteer Match</a> ·
+          Act now: <a href="${CX_TOOLS_SITE}/charity-comparison-engine.html?cause=${encodeURIComponent(p.name)}" target="_blank" rel="noopener">compare org types for this cause</a> ·
+          <a href="${CX_TOOLS_SITE}/volunteer-match.html?causes=${encodeURIComponent(p.name)}" target="_blank" rel="noopener">find a volunteer role</a> ·
+          <a href="${CX_TOOLS_SITE}/what-would-x-do.html" target="_blank" rel="noopener">see what $X does</a> ·
           <a href="https://givelink.app/en" target="_blank" rel="noopener">Givelink</a>
         </div>
       </div>
@@ -325,7 +325,8 @@ function renderProblem(id) {
   });
 
   document.getElementById('cxShareProblem').addEventListener('click', async function () {
-    const url = location.origin + location.pathname + '#/problem/' + p.id;
+    // share the static page — per-problem title/preview, opens without JS
+    const url = new URL('p/' + p.id + '.html', location.href).href;
     const text = `${p.emoji} ${p.name}: ${p.stat}. Understand it and see what actually works:`;
     try {
       if (navigator.share) { await navigator.share({ title: 'Impact Compass — ' + p.name, text, url }); return; }
