@@ -18,9 +18,10 @@ function cxLoad() {
   try {
     const s = JSON.parse(localStorage.getItem(CX_KEY) || '{}');
     return {
-      understood: s.understood || {},          // { problemId: timestamp }
-      plans: s.plans || [],                    // [{ id, problemId, createdAt, offers, minutes, steps: [{text, done}] }]
-      streak: s.streak || { last: '', count: 0 },
+      // sanitize nested shapes too — corrupt state must degrade, not blank the app
+      understood: (s.understood && typeof s.understood === 'object' && !Array.isArray(s.understood)) ? s.understood : {},
+      plans: Array.isArray(s.plans) ? s.plans.filter(p => p && Array.isArray(p.steps)) : [],
+      streak: (s.streak && typeof s.streak.count === 'number') ? s.streak : { last: '', count: 0 },
     };
   } catch { return { understood: {}, plans: [], streak: { last: '', count: 0 } }; }
 }
@@ -54,7 +55,8 @@ async function compassAI(systemPrompt, userMessage, onChunk) {
     return _compassAIFallback(systemPrompt, userMessage);
   }
   if (res.status === 429) { const e = new Error('rate'); e._rate = true; throw e; }
-  if (!res.ok) throw new Error('Server error: ' + res.status);
+  // Stream endpoint errored (5xx, or streaming disabled) — try the JSON route.
+  if (!res.ok) return _compassAIFallback(systemPrompt, userMessage);
 
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
@@ -107,13 +109,16 @@ const OFFER_META = {
 const cxView = () => document.getElementById('view');
 
 function cxRoute() {
+  cxTouchStreak(); // idempotent per day; installed PWAs resume for days without reloading
   const hash = location.hash.replace(/^#\/?/, '');
   const [seg, arg] = hash.split('/');
   const routes = { '': renderHome, atlas: renderAtlas, problem: renderProblem, plan: renderPlan, journey: renderJourney };
   const fn = routes[seg] || renderHome;
-  cxView().className = 'cx-fade';
-  fn(arg ? decodeURIComponent(arg.split('?')[0]) : undefined);
-  // restart the fade animation
+  let a;
+  try { a = arg ? decodeURIComponent(arg.split('?')[0]) : undefined; } catch { a = undefined; }
+  cxView().className = '';
+  fn(a);
+  // reflow with the class actually removed, so the fade replays on every route
   void cxView().offsetWidth;
   cxView().className = 'cx-fade';
   cxNavActive(seg || 'home');
@@ -214,7 +219,8 @@ function renderAtlas() {
 
 function renderProblem(id) {
   const p = compassProblem(id);
-  if (!p) { location.hash = '#/atlas'; return; }
+  // replace, not assign — assigning pushes a history entry and traps Back
+  if (!p) { location.replace('#/atlas'); return; }
   const done = !!cxState.understood[p.id];
   const u = p.understand;
 

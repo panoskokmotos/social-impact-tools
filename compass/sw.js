@@ -1,5 +1,5 @@
 /* Impact Compass service worker — scoped to /compass/. */
-const CACHE_NAME = 'impact-compass-v3';
+const CACHE_NAME = 'impact-compass-v4';
 const OFFLINE_ASSETS = [
   './',
   './index.html',
@@ -38,22 +38,30 @@ self.addEventListener('fetch', event => {
     event.respondWith(
       fetch(event.request)
         .then(res => {
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
+          // only cache good responses — a transient 404/500 must never
+          // overwrite the known-good offline app shell
+          if (res.ok) {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
+          }
           return res;
         })
         .catch(() => caches.match(event.request).then(cached => cached || caches.match('./index.html')))
     );
   } else {
+    // Stale-while-revalidate: serve from cache instantly, refresh in the
+    // background — so app.js/data.js deploys reach returning users even
+    // when CACHE_NAME wasn't bumped.
     event.respondWith(
       caches.match(event.request).then(cached => {
-        if (cached) return cached;
-        return fetch(event.request).then(res => {
-          if (!res || res.status !== 200 || res.type === 'opaque') return res;
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
+        const refresh = fetch(event.request).then(res => {
+          if (res && res.status === 200 && res.type !== 'opaque') {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
+          }
           return res;
-        });
+        }).catch(() => cached);
+        return cached || refresh;
       })
     );
   }
