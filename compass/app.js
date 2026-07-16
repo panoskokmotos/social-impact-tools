@@ -302,11 +302,13 @@ function renderProblem(id) {
     ${cxFooter()}
   `;
 
-  document.getElementById('cxUnderstood').addEventListener('click', () => {
+  document.getElementById('cxUnderstood').addEventListener('click', function () {
     if (cxState.understood[p.id]) return;
     cxState.understood[p.id] = Date.now();
     cxSave();
-    renderProblem(p.id);
+    // Update in place — a full re-render would wipe an in-progress AI chat.
+    this.classList.add('done');
+    this.textContent = '✓ Understood';
   });
 
   initProblemChat(p);
