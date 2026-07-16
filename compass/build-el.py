@@ -55,6 +55,7 @@ def analytics() -> str:
 def el(p: dict, over: dict) -> dict:
     """Merge Greek overrides onto a problem."""
     o = over["problems"].get(p["id"], {})
+    deep = over.get("deep", {}).get(p["id"])
     return {
         "id": p["id"], "emoji": p["emoji"], "category": p["category"],
         "dir": p["trend"]["dir"],
@@ -63,7 +64,51 @@ def el(p: dict, over: dict) -> dict:
         "trend": o.get("trend", p["trend"]["text"]),
         "misconception": o.get("misconception", p["understand"]["misconception"]),
         "en_name": p["name"],
+        "deep": deep,                    # full Greek article, or None
+        "en": p,                         # English source for evidence labels
     }
+
+
+EVIDENCE_EL = {"strong": "Ισχυρά στοιχεία", "promising": "Πολλά υποσχόμενο", "debated": "Υπό συζήτηση"}
+OFFER_EL = {"money": ("💶", "χρήματα"), "time": ("⏰", "χρόνο"), "skills": ("🛠️", "δεξιότητες"), "voice": ("📣", "φωνή")}
+
+
+def deep_sections(e: dict) -> str:
+    """Full-article Greek body (Understand / What works / Act)."""
+    d, en = e["deep"], e["en"]
+    understand = f"""
+    <div class="cx-section">
+      <div class="cx-section-label">🧠 Κατανόησε</div>
+      <div class="cx-card">
+        <div class="cx-fact"><div class="cx-fact-k">Η τάση</div><div class="cx-fact-v">{esc(e['trend'])}</div></div>
+        <div class="cx-fact"><div class="cx-fact-k">Το μέγεθος</div><div class="cx-fact-v">{esc(d['scale'])}</div></div>
+        <div class="cx-fact"><div class="cx-fact-k">Βαθύτερες αιτίες</div><div class="cx-fact-v">{esc(d['causes'])}</div></div>
+        <div class="cx-fact"><div class="cx-fact-k">Ποιοι υποφέρουν περισσότερο</div><div class="cx-fact-v">{esc(d['sufferers'])}</div></div>
+        <div class="cx-fact cx-fact-mis" style="margin-bottom:0"><div class="cx-fact-k">Κοινή παρανόηση</div><div class="cx-fact-v">{esc(e['misconception'])}</div></div>
+      </div>
+    </div>"""
+    ivs = "\n".join(f"""
+        <div class="cx-card cx-iv-card">
+          <div class="cx-iv-top"><span class="cx-iv-name">{esc(iv['name'])}</span>
+            <span class="cx-badge cx-badge-{en_iv['evidence']}">{EVIDENCE_EL[en_iv['evidence']]}</span></div>
+          <div class="cx-iv-what">{esc(iv['what'])}</div>
+          <div class="cx-iv-cost"><strong>Κόστος &amp; αποτέλεσμα:</strong> {esc(iv['cost'])}</div>
+        </div>""" for iv, en_iv in zip(d["interventions"], en["interventions"]))
+    works = f"""
+    <div class="cx-section">
+      <div class="cx-section-label">⚡ Τι πραγματικά λειτουργεί</div>
+      <div class="cx-iv">{ivs}</div>
+    </div>"""
+    groups = "\n".join(f"""
+          <div class="cx-act-group">
+            <div class="cx-act-title">{OFFER_EL[k][0]} Με τη/τον {OFFER_EL[k][1]} σου</div>
+            {''.join(f'<div class="cx-act-item">{esc(a)}</div>' for a in items)}
+          </div>""" for k, items in d["actions"].items() if items)
+    return understand + works + f"""
+    <div class="cx-section">
+      <div class="cx-section-label">🧭 Δράσε</div>
+      <div class="cx-card">{groups}</div>
+    </div>"""
 
 
 def head(title: str, desc: str, canonical: str, en_alt: str, og_title: str, analytics_html: str) -> str:
@@ -117,6 +162,19 @@ def problem_page(e: dict, cats: dict, over: dict, prev_e: dict, next_e: dict, an
     cat_el = over["categories"][e["category"]]
     cause_q = quote(e["en_name"])  # tools match on the English cause name
 
+    if e["deep"]:
+        body = deep_sections(e)
+    else:
+        body = f"""
+    <div class="cx-section">
+      <div class="cx-section-label">📈 Η τάση</div>
+      <div class="cx-card"><div class="cx-fact-v">{esc(e['trend'])}</div></div>
+    </div>
+    <div class="cx-section">
+      <div class="cx-section-label">🧠 Μια κοινή παρανόηση</div>
+      <div class="cx-card cx-fact-mis"><div class="cx-fact-v">{esc(e['misconception'])}</div></div>
+    </div>"""
+
     return head(title, desc, url, en_alt, f"{e['emoji']} {e['name']} — Πυξίδα Αντικτύπου", analytics_html) + f"""
   <main class="cx-main">
     <div style="font-size:0.78rem;margin-bottom:14px"><a href="{en_alt}" style="color:var(--text-dim)">🌐 English</a></div>
@@ -131,26 +189,15 @@ def problem_page(e: dict, cats: dict, over: dict, prev_e: dict, next_e: dict, an
         </div>
       </div>
     </div>
-
+{body}
     <div class="cx-section">
-      <div class="cx-section-label">📈 Η τάση</div>
-      <div class="cx-card"><div class="cx-fact-v">{esc(e['trend'])}</div></div>
-    </div>
-
-    <div class="cx-section">
-      <div class="cx-section-label">🧠 Μια κοινή παρανόηση</div>
-      <div class="cx-card cx-fact-mis"><div class="cx-fact-v">{esc(e['misconception'])}</div></div>
-    </div>
-
-    <div class="cx-section">
-      <div class="cx-section-label">🧭 Κατανόησε βαθύτερα & δράσε</div>
+      <div class="cx-section-label">🧭 Δράσε τώρα & πήγαινε βαθύτερα</div>
       <div class="cx-card">
-        <p style="color:var(--text-dim);font-size:0.92rem">Η πλήρης ανάλυση — το μέγεθος, οι αιτίες, τι λειτουργεί με βάση τα στοιχεία, και ένα προσωπικό σχέδιο δράσης με συνομιλία AI — είναι διαθέσιμη στην εφαρμογή.</p>
-        <div class="cx-detail-ctas" style="margin-top:14px">
-          <a class="cx-btn" href="../#/problem/{e['id']}">🧭 Άνοιξέ το στην εφαρμογή →</a>
+        <div class="cx-detail-ctas">
+          <a class="cx-btn" href="../#/problem/{e['id']}">🧭 Συνομιλία AI & σχέδιο δράσης στην εφαρμογή →</a>
         </div>
         <div style="color:var(--text-dim);font-size:0.78rem;margin-top:12px">
-          Δράσε τώρα: <a href="{SITE}/charity-comparison-engine.html?cause={cause_q}" target="_blank" rel="noopener">σύγκρινε τύπους οργανισμών</a> ·
+          Δράσε: <a href="{SITE}/charity-comparison-engine.html?cause={cause_q}" target="_blank" rel="noopener">σύγκρινε τύπους οργανισμών</a> ·
           <a href="{SITE}/volunteer-match.html?causes={cause_q}" target="_blank" rel="noopener">βρες εθελοντικό ρόλο</a> ·
           <a href="https://givelink.app" target="_blank" rel="noopener">δώσε μέσω Givelink</a>
         </div>
