@@ -160,7 +160,7 @@ button { font-family: inherit; }
 @media (max-width: 640px) { .cx-mission { grid-template-columns: 1fr; } }
 
 .cx-today { margin-top: 30px; }
-.cx-today-card { display: flex; align-items: center; gap: 16px; cursor: pointer; transition: border-color 0.15s, transform 0.12s; }
+.cx-today-card { display: flex; align-items: center; gap: 16px; cursor: pointer; transition: border-color 0.15s, transform 0.12s; text-decoration: none; color: inherit; }
 .cx-today-card:hover { border-color: var(--gold); transform: translateY(-2px); }
 .cx-today-emoji { font-size: 2.3rem; }
 .cx-today-name { font-weight: 800; font-size: 1.05rem; }
@@ -175,7 +175,7 @@ button { font-family: inherit; }
 /* ── Atlas ──────────────────────────────────────────── */
 .cx-filters { display: flex; gap: 8px; flex-wrap: wrap; margin: 20px 0 22px; }
 .cx-atlas { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
-.cx-problem-card { cursor: pointer; transition: border-color 0.15s, transform 0.12s; display: flex; flex-direction: column; gap: 8px; }
+.cx-problem-card { cursor: pointer; transition: border-color 0.15s, transform 0.12s; display: flex; flex-direction: column; gap: 8px; text-decoration: none; color: inherit; }
 .cx-problem-card:hover { border-color: var(--gold); transform: translateY(-2px); }
 .cx-problem-top { display: flex; align-items: center; justify-content: space-between; }
 .cx-problem-emoji { font-size: 1.8rem; }
@@ -279,6 +279,15 @@ select.cx-input { cursor: pointer; }
 
 .cx-fade { animation: cxfade 0.28s ease; }
 @keyframes cxfade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+#view:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .cx-fade, .cx-spinner, .cx-msg-ai.streaming::after { animation: none; }
+  .cx-card, .cx-btn, .cx-problem-card, .cx-today-card { transition: none; }
+}
 
 .cx-footer { margin-top: 50px; padding-top: 18px; border-top: 1px solid var(--border); color: var(--text-dim); font-size: 0.76rem; text-align: center; }
 .cx-footer a { color: var(--text-dim); text-decoration: underline; text-underline-offset: 2px; }

@@ -123,12 +123,18 @@ function cxRoute() {
   cxView().className = 'cx-fade';
   cxNavActive(seg || 'home');
   window.scrollTo(0, 0);
+  // Move focus to the new view so screen readers announce navigations
+  cxView().setAttribute('tabindex', '-1');
+  cxView().focus({ preventScroll: true });
 }
 
 function cxNavActive(seg) {
   const map = { home: '#/', atlas: '#/atlas', problem: '#/atlas', plan: '#/plan', journey: '#/journey' };
   document.querySelectorAll('.cx-nav a').forEach(a => {
-    a.classList.toggle('active', a.getAttribute('href') === (map[seg] || '#/'));
+    const active = a.getAttribute('href') === (map[seg] || '#/');
+    a.classList.toggle('active', active);
+    if (active) a.setAttribute('aria-current', 'page');
+    else a.removeAttribute('aria-current');
   });
 }
 
@@ -157,13 +163,13 @@ function renderHome() {
 
     <div class="cx-today">
       <h2 class="cx-h2">Today's problem</h2>
-      <div class="cx-card cx-today-card" onclick="location.hash='#/problem/${today.id}'">
+      <a class="cx-card cx-today-card" href="#/problem/${today.id}">
         <span class="cx-today-emoji">${today.emoji}</span>
         <div>
           <div class="cx-today-name">${esc(today.name)}</div>
           <div class="cx-today-stat">${esc(today.stat)}</div>
         </div>
-      </div>
+      </a>
     </div>
 
     <div class="cx-pulse">
@@ -194,7 +200,7 @@ function renderAtlas() {
   const draw = (cat) => {
     const list = COMPASS_PROBLEMS.filter(p => cat === 'all' || p.category === cat);
     grid.innerHTML = list.map(p => `
-      <div class="cx-card cx-problem-card" onclick="location.hash='#/problem/${p.id}'">
+      <a class="cx-card cx-problem-card" href="#/problem/${p.id}">
         <div class="cx-problem-top">
           <span class="cx-problem-emoji">${p.emoji}</span>
           <span class="cx-badge cx-badge-${p.trend.dir}">${TREND_LABEL[p.trend.dir]}</span>
@@ -205,7 +211,7 @@ function renderAtlas() {
           <span class="cx-badge cx-badge-cat">${COMPASS_CATEGORIES[p.category].emoji} ${COMPASS_CATEGORIES[p.category].name}</span>
           ${cxState.understood[p.id] ? '<span class="cx-problem-done">✓ Understood</span>' : ''}
         </div>
-      </div>`).join('');
+      </a>`).join('');
   };
   draw('all');
   document.getElementById('cxFilters').addEventListener('click', e => {
@@ -284,6 +290,7 @@ function renderProblem(id) {
     <div class="cx-detail-ctas">
       <button class="cx-btn cx-understood ${done ? 'done' : ''}" id="cxUnderstood">${done ? '✓ Understood' : '✓ I understand this now'}</button>
       <a class="cx-btn cx-btn-ghost" href="#/plan/${p.id}">Build my action plan →</a>
+      <button class="cx-btn cx-btn-ghost" id="cxShareProblem">📤 Share</button>
     </div>
 
     <div class="cx-section">
@@ -315,6 +322,17 @@ function renderProblem(id) {
     // Update in place — a full re-render would wipe an in-progress AI chat.
     this.classList.add('done');
     this.textContent = '✓ Understood';
+  });
+
+  document.getElementById('cxShareProblem').addEventListener('click', async function () {
+    const url = location.origin + location.pathname + '#/problem/' + p.id;
+    const text = `${p.emoji} ${p.name}: ${p.stat}. Understand it and see what actually works:`;
+    try {
+      if (navigator.share) { await navigator.share({ title: 'Impact Compass — ' + p.name, text, url }); return; }
+      await navigator.clipboard.writeText(text + ' ' + url);
+      this.textContent = '✓ Copied';
+      setTimeout(() => { this.textContent = '📤 Share'; }, 1600);
+    } catch {}
   });
 
   initProblemChat(p);
