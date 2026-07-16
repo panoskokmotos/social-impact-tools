@@ -10,7 +10,7 @@ crons = ["0 8 * * *"]
 #   npx wrangler kv namespace create SUBS
 [[kv_namespaces]]
 binding = "SUBS"
-id = "PASTE_YOUR_KV_NAMESPACE_ID_HERE"
+id = "574dfb63e253458caab58d088b8ddeea"
 
 [vars]
 VAPID_PUBLIC_KEY = "BLSXOCS4Igt3Dif9hGeKNeKdcgznMnRlTFiwQafvp8S_CnK6Ky1M6Sk8OWwBzmKzAJHg8igvAiNlSHguXK7vUqA"
