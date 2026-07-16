@@ -31,6 +31,8 @@ understanding, reduce suffering, expand the reach of care. Self-contained
   output: **run `python3 compass/build-pages.py` after any data.js change** —
   it re-renders all pages and refreshes the compass block in `sitemap.xml`.
   In-app shares and the tools' `?cause=` deep links point at these pages.
+  Each has a custom social-share image at `compass/og/<id>.jpg` — regenerate
+  with `node compass/build-og.mjs` after a data.js change.
 - `compass/el/` — Greek edition. `compass/data.el.js` holds Greek text
   overrides (name/stat/trend/misconception) per problem; **run `python3
   compass/build-el.py` after data.js or data.el.js changes** to regenerate

@@ -112,9 +112,11 @@ def page(p: dict, cats: dict, prev_p: dict, next_p: dict, analytics_html: str) -
   <meta property="og:description" content="{esc(p['stat'])}" />
   <meta property="og:type" content="article" />
   <meta property="og:url" content="{url}" />
-  <meta property="og:image" content="{SITE}/og-ai-tools.png" />
+  <meta property="og:image" content="{SITE}/compass/og/{p['id']}.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:image" content="{SITE}/og-ai-tools.png" />
+  <meta name="twitter:image" content="{SITE}/compass/og/{p['id']}.jpg" />
   <meta name="twitter:creator" content="@panoskokmotoss" />
   <script type="application/ld+json">
 {jsonld}
@@ -225,6 +227,8 @@ def index_page(problems: list[dict], cats: dict, analytics_html: str) -> str:
   <meta property="og:description" content="{len(problems)} major world problems explained honestly, with what actually works against them." />
   <meta property="og:url" content="{SITE}/compass/p/" />
   <meta property="og:image" content="{SITE}/og-ai-tools.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
 </head>
 <body>
   <header class="cx-topbar">
