@@ -650,8 +650,24 @@ function renderJourney() {
       <button class="cx-btn cx-btn-ghost" id="cxShare">📤 Share my journey</button>
       <a class="cx-btn" href="#/atlas">Keep exploring →</a>
     </div>
+
+    <div class="cx-section">
+      <div class="cx-section-label">🔔 One problem a day</div>
+      <div class="cx-card">
+        <p style="color:var(--text-dim);font-size:0.9rem;margin-bottom:14px">Get the day's problem delivered — a small, steady way to keep the world in view. Pick either or both.</p>
+        <form class="cx-chat-form" id="cxEmailForm" style="margin-bottom:10px">
+          <input class="cx-input" id="cxEmailInput" type="email" placeholder="you@example.com" autocomplete="email" value="${esc(window.CompassNotify ? CompassNotify.emailSubscribed() : '')}" />
+          <button class="cx-btn" type="submit" id="cxEmailBtn">✉️ Email me daily</button>
+        </form>
+        <button class="cx-btn cx-btn-ghost" id="cxPushBtn">${window.CompassNotify && CompassNotify.pushSubscribed() ? '🔔 Push on this device: on' : '📲 Send push to this device'}</button>
+        <div class="cx-error" id="cxNotifyMsg" style="margin-top:10px"></div>
+        <p style="color:var(--text-dim);font-size:0.72rem;margin-top:10px">Free, one message a day, unsubscribe anytime. Your email is used only for this.</p>
+      </div>
+    </div>
     ${cxFooter()}
   `;
+
+  cxWireDailyDelivery();
 
   document.getElementById('cxShare').addEventListener('click', async () => {
     const text = `I'm using Impact Compass to understand the world's biggest problems and act on them — ${ids.length}/${total} problems understood, ${cxStepsDone()} action steps done. 🧭`;
@@ -663,6 +679,38 @@ function renderJourney() {
       btn.textContent = '✓ Copied';
       setTimeout(() => { btn.textContent = '📤 Share my journey'; }, 1600);
     } catch {}
+  });
+}
+
+function cxWireDailyDelivery() {
+  const msg = document.getElementById('cxNotifyMsg');
+  const show = (t, ok) => { msg.textContent = t; msg.style.color = ok ? 'var(--green)' : 'var(--red)'; msg.classList.add('visible'); };
+  const REASON = {
+    invalid: 'That email doesn\'t look right.',
+    denied: 'Notifications are blocked — allow them in your browser settings.',
+    unsupported: 'This browser doesn\'t support push. Try the email option.',
+    offline: 'Daily delivery isn\'t reachable yet — please try again later.',
+    server: 'Daily delivery isn\'t reachable yet — please try again later.',
+  };
+
+  const emailForm = document.getElementById('cxEmailForm');
+  emailForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = document.getElementById('cxEmailBtn');
+    const val = document.getElementById('cxEmailInput').value.trim();
+    btn.disabled = true; btn.textContent = 'Signing up…';
+    const r = await CompassNotify.subscribeEmail(val);
+    btn.disabled = false;
+    if (r.ok) { btn.textContent = '✓ You\'re signed up'; show('You\'ll get one problem a day by email. 🌍', true); }
+    else { btn.textContent = '✉️ Email me daily'; show(REASON[r.reason] || REASON.server, false); }
+  });
+
+  document.getElementById('cxPushBtn').addEventListener('click', async function () {
+    this.disabled = true; const prev = this.textContent; this.textContent = 'Enabling…';
+    const r = await CompassNotify.subscribePush();
+    this.disabled = false;
+    if (r.ok) { this.textContent = '🔔 Push on this device: on'; show('This device will get the day\'s problem. 📲', true); }
+    else { this.textContent = prev; show(REASON[r.reason] || REASON.server, false); }
   });
 }
 
