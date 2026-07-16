@@ -1,5 +1,5 @@
 /* Impact Compass service worker — scoped to /compass/. */
-const CACHE_NAME = 'impact-compass-v10';
+const CACHE_NAME = 'impact-compass-v11';
 const OFFLINE_ASSETS = [
   './',
   './index.html',
@@ -24,6 +24,18 @@ self.addEventListener('activate', event => {
     )
   );
   self.clients.claim();
+});
+
+/* Daily-nudge notification tap → open (or focus) that problem. */
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || './';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(wins => {
+      for (const w of wins) { if ('focus' in w) { w.focus(); if ('navigate' in w) w.navigate(url); return; } }
+      if (clients.openWindow) return clients.openWindow(url);
+    })
+  );
 });
 
 /* HTML: network-first (fresh app shell, cache fallback keeps it working

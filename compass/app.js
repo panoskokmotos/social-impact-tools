@@ -22,6 +22,7 @@ function cxLoad() {
       understood: (s.understood && typeof s.understood === 'object' && !Array.isArray(s.understood)) ? s.understood : {},
       plans: Array.isArray(s.plans) ? s.plans.filter(p => p && Array.isArray(p.steps)) : [],
       streak: (s.streak && typeof s.streak.count === 'number') ? s.streak : { last: '', count: 0 },
+      daily: (s.daily && typeof s.daily === 'object' && !Array.isArray(s.daily)) ? s.daily : { reflected: '', nudge: false, nudged: '' },
     };
   } catch { return { understood: {}, plans: [], streak: { last: '', count: 0 } }; }
 }
@@ -36,6 +37,49 @@ function cxTouchStreak() {
   s.count = (s.last === yesterday) ? s.count + 1 : 1;
   s.last = today;
   cxSave();
+}
+
+/* ── Daily ritual ───────────────────────────────────── */
+function cxToday() { return new Date().toDateString(); }
+function cxReflectedToday() { return cxState.daily && cxState.daily.reflected === cxToday(); }
+
+/* Local "problem of the day" nudge. Honest scope: fires when the app is
+   opened on a new day (installed PWA or tab). True scheduled background
+   push needs a server (VAPID) — a deliberate follow-up, not faked here. */
+function cxMaybeNudge() {
+  const d = cxState.daily;
+  if (!d || !d.nudge) return;
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  const today = cxToday();
+  if (d.nudged === today) return;
+  d.nudged = today;
+  cxSave();
+  const dayIdx = Math.floor(Date.now() / 86400000) % COMPASS_PROBLEMS.length;
+  const p = COMPASS_PROBLEMS[dayIdx];
+  const body = `${p.emoji} ${p.name}: ${p.stat}.`;
+  try {
+    if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+      navigator.serviceWorker.ready.then(reg =>
+        reg.showNotification("Today's problem — Impact Compass", {
+          body, icon: './icon-192.png', badge: './icon-192.png',
+          tag: 'compass-daily', data: { url: './#/problem/' + p.id },
+        })).catch(() => {});
+    } else {
+      new Notification("Today's problem — Impact Compass", { body, icon: './icon-192.png' });
+    }
+  } catch {}
+}
+
+async function cxToggleNudge(btn) {
+  const d = cxState.daily;
+  if (d.nudge) { d.nudge = false; cxSave(); btn.textContent = '🔕 Get a daily nudge'; return; }
+  if (typeof Notification === 'undefined') { btn.textContent = '🔕 Not supported on this browser'; return; }
+  let perm = Notification.permission;
+  if (perm === 'default') { try { perm = await Notification.requestPermission(); } catch {} }
+  if (perm !== 'granted') { btn.textContent = '🔕 Notifications blocked — allow in browser'; return; }
+  d.nudge = true; d.nudged = ''; cxSave();
+  btn.textContent = '🔔 Daily nudge on';
+  cxMaybeNudge(); // confirm immediately
 }
 
 function cxStepsDone() {
@@ -170,6 +214,11 @@ function renderHome() {
           <div class="cx-today-stat">${esc(today.stat)}</div>
         </div>
       </a>
+      <div class="cx-detail-ctas" style="margin-top:10px">
+        <button class="cx-btn ${cxReflectedToday() ? 'cx-understood done' : 'cx-btn-ghost'}" id="cxReflect">${cxReflectedToday() ? '✓ Reflected today — see you tomorrow' : '🕯️ I reflected on this today'}</button>
+        <button class="cx-btn cx-btn-ghost" id="cxNudge">${cxState.daily.nudge ? '🔔 Daily nudge on' : '🔕 Get a daily nudge'}</button>
+      </div>
+      <p style="color:var(--text-dim);font-size:0.76rem;margin-top:8px">A new problem surfaces every day. Small, steady attention is how care compounds.</p>
     </div>
 
     <div class="cx-pulse">
@@ -180,6 +229,16 @@ function renderHome() {
     </div>
     ${cxFooter()}
   `;
+
+  const reflectBtn = document.getElementById('cxReflect');
+  reflectBtn.addEventListener('click', function () {
+    if (cxReflectedToday()) return;
+    cxState.daily.reflected = cxToday();
+    cxSave();
+    this.className = 'cx-btn cx-understood done';
+    this.textContent = '✓ Reflected today — see you tomorrow';
+  });
+  document.getElementById('cxNudge').addEventListener('click', function () { cxToggleNudge(this); });
 }
 
 function renderAtlas() {
@@ -619,4 +678,5 @@ document.addEventListener('DOMContentLoaded', () => {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {});
   }
+  cxMaybeNudge();
 });
