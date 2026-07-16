@@ -137,7 +137,7 @@ function renderHome() {
     <div class="cx-hero">
       <p class="cx-eyebrow">A compass for a hurting, improvable world</p>
       <h1 class="cx-h1">Understand the world.<br><span>Reduce suffering.</span><br>Expand your circle of care.</h1>
-      <p class="cx-sub">Fifteen of humanity's biggest problems — what they really are, what the evidence says actually works against them, and a concrete path for <em>you</em> to help, whatever you have to offer.</p>
+      <p class="cx-sub">${COMPASS_PROBLEMS.length} of humanity's biggest problems — what they really are, what the evidence says actually works against them, and a concrete path for <em>you</em> to help, whatever you have to offer.</p>
       <div class="cx-hero-ctas">
         <a class="cx-btn" href="#/atlas">🗺️ Explore the Atlas</a>
         <a class="cx-btn cx-btn-ghost" href="#/plan">Build my action plan</a>
@@ -174,7 +174,7 @@ function renderHome() {
 function renderAtlas() {
   cxView().innerHTML = `
     <p class="cx-eyebrow">The Problem Atlas</p>
-    <h1 class="cx-h1">15 problems worth understanding</h1>
+    <h1 class="cx-h1">${COMPASS_PROBLEMS.length} problems worth understanding</h1>
     <p class="cx-sub">Each entry is curated from well-established evidence. Figures are approximate by design — honesty over precision.</p>
     <div class="cx-filters" id="cxFilters">
       <button class="cx-chip active" data-cat="all">All</button>
