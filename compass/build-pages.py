@@ -108,6 +108,20 @@ def page(p: dict, cats: dict, prev_p: dict, next_p: dict, analytics_html: str) -
     desc = f"{p['stat']}. See what evidence says actually reduces {p['name'].lower()}, the most effective interventions with honest costs, and where to focus your money, time, or skills to help."
     u = p["understand"]
 
+    share_text = f"{p['emoji']} {p['name']}: {p['stat']}. See what actually works:"
+    su, st = quote(url), quote(share_text)
+    stu = quote(share_text + " " + url)
+    share_html = f"""
+    <div class="cx-section">
+      <div class="cx-section-label">📣 Share this</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <a class="cx-chip" href="https://twitter.com/intent/tweet?text={st}&amp;url={su}" target="_blank" rel="noopener">𝕏 Post</a>
+        <a class="cx-chip" href="https://wa.me/?text={stu}" target="_blank" rel="noopener">💬 WhatsApp</a>
+        <a class="cx-chip" href="https://www.linkedin.com/sharing/share-offsite/?url={su}" target="_blank" rel="noopener">in LinkedIn</a>
+        <a class="cx-chip" href="https://www.facebook.com/sharer/sharer.php?u={su}" target="_blank" rel="noopener">f Facebook</a>
+      </div>
+    </div>"""
+
     qa = faq(p)
     faq_html = "\n".join(
         f'        <div class="cx-fact"><div class="cx-fact-k">{esc(q)}</div><div class="cx-fact-v">{esc(a)}</div></div>'
@@ -240,7 +254,7 @@ def page(p: dict, cats: dict, prev_p: dict, next_p: dict, analytics_html: str) -
     <div class="cx-detail-ctas">
       <a class="cx-btn" href="../#/problem/{p['id']}">🧭 Explore this in the app — AI deep-dive &amp; action plan</a>
     </div>
-
+{share_html}
     <div class="cx-section">
       <div class="cx-section-label">❓ Questions people ask</div>
       <div class="cx-card">

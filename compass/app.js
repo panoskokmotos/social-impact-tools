@@ -310,6 +310,13 @@ function renderProblem(id) {
   cxTrack('problem_view', { problem: p.id });
   const done = !!cxState.understood[p.id];
   const u = p.understand;
+  // Share-intent targets: the static page carries this problem's OG card,
+  // so each network pulls the right preview when the link is shared.
+  const shareUrl = `${CX_TOOLS_SITE}/compass/p/${p.id}.html`;
+  const shareText = `${p.emoji} ${p.name}: ${p.stat}. See what actually works:`;
+  const _su = encodeURIComponent(shareUrl);
+  const _st = encodeURIComponent(shareText);
+  const _stu = encodeURIComponent(shareText + ' ' + shareUrl);
 
   cxView().innerHTML = `
     <a class="cx-back" href="#/atlas">← Atlas</a>
@@ -374,6 +381,13 @@ function renderProblem(id) {
       <button class="cx-btn cx-btn-ghost" id="cxShareProblem">📤 Share</button>
     </div>
 
+    <div class="cx-share-row" id="cxShareRow" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px">
+      <a class="cx-chip" data-net="x" href="https://twitter.com/intent/tweet?text=${_st}&url=${_su}" target="_blank" rel="noopener">𝕏 Post</a>
+      <a class="cx-chip" data-net="whatsapp" href="https://wa.me/?text=${_stu}" target="_blank" rel="noopener">💬 WhatsApp</a>
+      <a class="cx-chip" data-net="linkedin" href="https://www.linkedin.com/sharing/share-offsite/?url=${_su}" target="_blank" rel="noopener">in LinkedIn</a>
+      <a class="cx-chip" data-net="facebook" href="https://www.facebook.com/sharer/sharer.php?u=${_su}" target="_blank" rel="noopener">f Facebook</a>
+    </div>
+
     <div class="cx-section">
       <div class="cx-section-label">💬 Go deeper with AI</div>
       <div class="cx-chat" id="cxChat">
@@ -426,6 +440,11 @@ function renderProblem(id) {
     if (!a) return;
     if (a.dataset.out === 'givelink') cxTrack('outbound_givelink_click', { problem: p.id, where: 'problem' });
     else cxTrack('outbound_tool_click', { problem: p.id, tool: a.dataset.tool });
+  });
+
+  document.getElementById('cxShareRow').addEventListener('click', e => {
+    const a = e.target.closest('a[data-net]');
+    if (a) cxTrack('share_click', { problem: p.id, where: 'problem', network: a.dataset.net });
   });
 
   initProblemChat(p);

@@ -213,6 +213,20 @@ def problem_page(e: dict, cats: dict, over: dict, prev_e: dict, next_e: dict, an
     cat_el = over["categories"][e["category"]]
     cause_q = quote(e["en_name"])  # tools match on the English cause name
 
+    share_text = f"{e['emoji']} {e['name']}: {e['stat']}. Δες τι πραγματικά λειτουργεί:"
+    su, st = quote(url), quote(share_text)
+    stu = quote(share_text + " " + url)
+    share_html = f"""
+    <div class="cx-section">
+      <div class="cx-section-label">📣 Μοιράσου το</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <a class="cx-chip" href="https://twitter.com/intent/tweet?text={st}&amp;url={su}" target="_blank" rel="noopener">𝕏 Post</a>
+        <a class="cx-chip" href="https://wa.me/?text={stu}" target="_blank" rel="noopener">💬 WhatsApp</a>
+        <a class="cx-chip" href="https://www.linkedin.com/sharing/share-offsite/?url={su}" target="_blank" rel="noopener">in LinkedIn</a>
+        <a class="cx-chip" href="https://www.facebook.com/sharer/sharer.php?u={su}" target="_blank" rel="noopener">f Facebook</a>
+      </div>
+    </div>"""
+
     qa = faq_el(e)
     faq_section = ""
     extra_head = ""
@@ -264,6 +278,7 @@ def problem_page(e: dict, cats: dict, over: dict, prev_e: dict, next_e: dict, an
       </div>
     </div>
 {body}
+{share_html}
 {faq_section}
     <div class="cx-section">
       <div class="cx-section-label">🧭 Δράσε τώρα & πήγαινε βαθύτερα</div>
