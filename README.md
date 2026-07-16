@@ -39,3 +39,7 @@ understanding, reduce suffering, expand the reach of care. Self-contained
   First-pass translation — review before heavy promotion. Deep prose
   (scale/causes/interventions/actions) is not yet translated by design.
 - Not wired into `build.py` partials — the app has its own chrome by design.
+- **Before shipping an Atlas change**, run the guardrails:
+  `node compass/test-data.mjs` (structure, enums, Greek↔English id parity,
+  generated-page presence) and `node compass/worker/test-webpush.mjs`
+  (validates the push encryption). Both exit non-zero on failure.
