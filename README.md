@@ -31,4 +31,11 @@ understanding, reduce suffering, expand the reach of care. Self-contained
   output: **run `python3 compass/build-pages.py` after any data.js change** —
   it re-renders all pages and refreshes the compass block in `sitemap.xml`.
   In-app shares and the tools' `?cause=` deep links point at these pages.
+- `compass/el/` — Greek edition. `compass/data.el.js` holds Greek text
+  overrides (name/stat/trend/misconception) per problem; **run `python3
+  compass/build-el.py` after data.js or data.el.js changes** to regenerate
+  the Greek hub + pages and the compass-el block in `sitemap.xml`. English
+  and Greek pages are hreflang-linked both ways; the app nav links to `el/`.
+  First-pass translation — review before heavy promotion. Deep prose
+  (scale/causes/interventions/actions) is not yet translated by design.
 - Not wired into `build.py` partials — the app has its own chrome by design.

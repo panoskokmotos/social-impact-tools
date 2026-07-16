@@ -104,6 +104,9 @@ def page(p: dict, cats: dict, prev_p: dict, next_p: dict, analytics_html: str) -
   <meta name="theme-color" content="#0a0f1e" />
   <meta name="robots" content="index, follow, max-image-preview:large" />
   <link rel="canonical" href="{url}" />
+  <link rel="alternate" hreflang="en" href="{url}" />
+  <link rel="alternate" hreflang="el" href="{SITE}/compass/el/{p['id']}.html" />
+  <link rel="alternate" hreflang="x-default" href="{url}" />
   <meta property="og:title" content="{esc(p['emoji'] + ' ' + p['name'] + ' — Impact Compass')}" />
   <meta property="og:description" content="{esc(p['stat'])}" />
   <meta property="og:type" content="article" />
@@ -128,6 +131,7 @@ def page(p: dict, cats: dict, prev_p: dict, next_p: dict, analytics_html: str) -
     </nav>
   </header>
   <main class="cx-main">
+    <div style="font-size:0.78rem;margin-bottom:14px"><a href="{SITE}/compass/el/{p['id']}.html" style="color:var(--text-dim)">🌐 Ελληνικά</a></div>
     <div class="cx-detail-head">
       <span class="cx-detail-emoji">{p['emoji']}</span>
       <div>
