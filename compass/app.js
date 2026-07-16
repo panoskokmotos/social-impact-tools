@@ -160,11 +160,13 @@ function cxRoute() {
   const fn = routes[seg] || renderHome;
   let a;
   try { a = arg ? decodeURIComponent(arg.split('?')[0]) : undefined; } catch { a = undefined; }
-  cxView().className = '';
+  const v = cxView();
+  // toggle only the fade class via classList so the container's own
+  // cx-main class (max-width, centering, padding) is never stripped
+  v.classList.remove('cx-fade');
   fn(a);
-  // reflow with the class actually removed, so the fade replays on every route
-  void cxView().offsetWidth;
-  cxView().className = 'cx-fade';
+  void v.offsetWidth; // reflow so the fade replays on every route
+  v.classList.add('cx-fade');
   cxNavActive(seg || 'home');
   window.scrollTo(0, 0);
   // Move focus to the new view so screen readers announce navigations
