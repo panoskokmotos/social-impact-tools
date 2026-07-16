@@ -93,6 +93,7 @@ def page(p: dict, cats: dict, prev_p: dict, next_p: dict, analytics_html: str) -
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
   {analytics_html}
   <title>{esc(title)}</title>
   <meta name="description" content="{esc(desc)}" />
@@ -211,6 +212,7 @@ def index_page(problems: list[dict], cats: dict, analytics_html: str) -> str:
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
   {analytics_html}
   <title>The Problem Atlas — {len(problems)} of the world's biggest problems, explained honestly</title>
   <meta name="description" content="{len(problems)} major world problems: their scale, root causes, evidence-rated interventions with honest costs, and concrete ways to help. Part of Impact Compass." />
