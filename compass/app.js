@@ -102,15 +102,22 @@ async function compassAI(systemPrompt, userMessage, onChunk) {
   // Stream endpoint errored (5xx, or streaming disabled) — try the JSON route.
   if (!res.ok) return _compassAIFallback(systemPrompt, userMessage);
 
-  const reader = res.body.getReader();
-  const decoder = new TextDecoder();
   let full = '';
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    full += decoder.decode(value, { stream: true });
-    if (onChunk) onChunk(full);
+  try {
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      full += decoder.decode(value, { stream: true });
+      if (onChunk) onChunk(full);
+    }
+  } catch {
+    // stream broke mid-flight — fall through to the non-streaming route
   }
+  // 200 but empty/whitespace body (streaming misconfigured, or the stream
+  // broke before any text) — recover via the plain JSON endpoint
+  if (!full.trim()) return _compassAIFallback(systemPrompt, userMessage);
   return full;
 }
 
