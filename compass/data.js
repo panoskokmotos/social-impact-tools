@@ -25,17 +25,17 @@ const COMPASS_PROBLEMS = [
     name: 'Extreme Poverty',
     emoji: '🌍',
     category: 'poverty',
-    stat: 'Roughly 700 million people live on less than $2.15 a day',
+    stat: 'Roughly 800 million people live on less than $3.00 a day',
     trend: { dir: 'improving', text: 'The share of humanity in extreme poverty fell from ~38% in 1990 to under 10% today — one of the great achievements of our era, though progress has slowed since COVID.' },
     understand: {
-      scale: 'On the order of 700 million people — about 1 in 12 humans — live below the World Bank extreme poverty line of $2.15/day (adjusted for local prices). Most live in Sub-Saharan Africa and fragile, conflict-affected states.',
+      scale: 'On the order of 800 million people — about 1 in 10 humans — live below the World Bank extreme poverty line of $3.00/day (2021 prices, adjusted for local costs). Most live in Sub-Saharan Africa and fragile, conflict-affected states.',
       causes: 'Conflict and displacement, weak institutions and infrastructure, limited access to markets, credit, education and healthcare, and climate shocks that wipe out savings held as crops or livestock.',
       sufferers: 'Rural families, children (who are over-represented among the extreme poor), and people in conflict zones. Poverty at this level means chronic hunger, untreated illness, and children working instead of learning.',
       misconception: '"Global poverty keeps getting worse." The opposite: extreme poverty has seen the steepest sustained decline in human history over the last generation. The work is unfinished, not failing.',
     },
     interventions: [
       { name: 'Direct cash transfers', what: 'Giving money directly to the poorest households, unconditionally. Recipients invest in food, roofs, livestock and small businesses.', evidence: 'strong', cost: 'Roughly $1 delivers ~$0.85–0.90 into a family\'s hands; well-studied across dozens of trials.' },
-      { name: 'Graduation programs', what: 'A package: a productive asset (like livestock), training, coaching and a small stipend, to help families build a livelihood.', evidence: 'strong', cost: 'Higher cost per household (~$300–1,500), with benefits persisting years after the program ends.' },
+      { name: 'Graduation programs', what: 'A package: a productive asset (like livestock), training, coaching and a small stipend, to help families build a livelihood.', evidence: 'strong', cost: 'Higher cost per household (~$300–2,000+, varying widely by country and package), with benefits persisting years after the program ends.' },
       { name: 'Microfinance', what: 'Small loans to poor entrepreneurs. Popular for decades.', evidence: 'debated', cost: 'RCTs find modest average effects — helpful for some, not transformative at scale; less effective than the hype suggested.' },
     ],
     actions: {
@@ -52,7 +52,7 @@ const COMPASS_PROBLEMS = [
     emoji: '🦟',
     category: 'health',
     stat: 'Roughly 600,000 deaths a year — most of them children under five',
-    trend: { dir: 'improving', text: 'Malaria deaths roughly halved between 2000 and 2015 thanks to nets and treatment, but progress has plateaued and funding gaps threaten reversals.' },
+    trend: { dir: 'improving', text: 'Malaria death rates roughly halved between 2000 and 2015 thanks to nets and treatment, but progress has plateaued and funding gaps threaten reversals.' },
     understand: {
       scale: 'On the order of 250 million cases and 600,000 deaths a year, ~95% in Sub-Saharan Africa. A child dies of malaria roughly every minute.',
       causes: 'A parasite spread by Anopheles mosquitoes. It persists where health systems are weak, prevention tools are underfunded, and warm climates sustain transmission year-round.',
@@ -112,7 +112,7 @@ const COMPASS_PROBLEMS = [
       misconception: '"There isn\'t enough food in the world." The world grows more than enough calories for everyone; hunger is about poverty, distribution and conflict — not global scarcity.',
     },
     interventions: [
-      { name: 'Therapeutic feeding (RUTF)', what: 'Ready-to-use peanut-paste foods that let mothers treat severe child malnutrition at home.', evidence: 'strong', cost: 'Roughly $40–100 to bring a severely malnourished child back from the edge; recovery rates above 90% in good programs.' },
+      { name: 'Therapeutic feeding (RUTF)', what: 'Ready-to-use peanut-paste foods that let mothers treat severe child malnutrition at home.', evidence: 'strong', cost: 'On the order of $100–200 for a full course of treatment (the peanut paste itself is roughly $50); recovery rates above 90% in good programs.' },
       { name: 'Food fortification', what: 'Adding iodine, iron, folic acid or vitamin A to staples like salt and flour.', evidence: 'strong', cost: 'Pennies per person per year; iodization alone prevented cognitive impairment for hundreds of millions.' },
       { name: 'School meal programs', what: 'Free meals at school — nutrition plus attendance in one program.', evidence: 'promising', cost: 'Tens of dollars per child per year; consistently boosts enrollment, with more mixed effects on learning.' },
     ],
@@ -216,7 +216,7 @@ const COMPASS_PROBLEMS = [
       misconception: '"People must solve their addiction/illness before they can be housed." Housing First flips this — housing is the stable platform that makes treatment work, and the evidence backs it.',
     },
     interventions: [
-      { name: 'Housing First', what: 'Permanent housing without preconditions, plus voluntary support services.', evidence: 'strong', cost: 'Keeps ~80%+ of chronically homeless people stably housed in trials; often roughly cost-neutral once ER, shelter and jail costs are counted.' },
+      { name: 'Housing First', what: 'Permanent housing without preconditions, plus voluntary support services.', evidence: 'strong', cost: 'Keeps ~80%+ of chronically homeless people stably housed in trials; offsets a large share of its cost through avoided ER, shelter and jail use, approaching cost-neutral for the highest-need group.' },
       { name: 'Rapid rehousing & eviction prevention', what: 'Short-term rent help and legal aid to stop the slide into homelessness.', evidence: 'promising', cost: 'A few thousand dollars per household — far cheaper than the shelter system it prevents.' },
       { name: 'More housing supply', what: 'Zoning reform and building more homes where people want to live.', evidence: 'strong', cost: 'The structural fix: homelessness rates track housing costs more than anything else. Slow, political, decisive.' },
     ],
@@ -311,7 +311,7 @@ const COMPASS_PROBLEMS = [
     name: 'Gender Inequality',
     emoji: '⚖️',
     category: 'society',
-    stat: 'Roughly 12 million girls are married as children each year; over 100 million girls and women alive today were cut',
+    stat: 'Roughly 12 million girls are married as children each year; over 230 million girls and women alive today were cut',
     trend: { dir: 'improving', text: 'Girls\' schooling, women\'s political participation and laws on violence have improved almost everywhere over 30 years — unevenly, with backlashes, and nowhere near done.' },
     understand: {
       scale: 'On the order of 12 million child marriages a year, ~1 in 3 women experiencing physical or sexual violence in their lifetime (WHO), large gaps in pay, property rights and unpaid care work, and in places like Afghanistan, outright exclusion from school and work.',
