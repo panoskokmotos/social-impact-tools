@@ -129,8 +129,9 @@ def page(p: dict, cats: dict, prev_p: dict, next_p: dict, analytics_html: str) -
       <span>Impact Compass<span class="cx-brand-sub">Understand · Reduce suffering · Care</span></span>
     </a>
     <nav class="cx-nav" aria-label="Site navigation">
-      <a href="../"><span class="cx-nav-emoji">🧭</span>Open the app</a>
+      <a href="../"><span class="cx-nav-emoji">🧭</span>App</a>
       <a href="./"><span class="cx-nav-emoji">🗺️</span>All problems</a>
+      <a href="{SITE}/compass/el/{p['id']}.html" class="cx-lang"><span class="cx-nav-emoji">🌐</span>ΕΛ</a>
     </nav>
   </header>
   <main class="cx-main">
@@ -236,7 +237,7 @@ def index_page(problems: list[dict], cats: dict, analytics_html: str) -> str:
       <img src="../icon.svg" alt="" width="30" height="30" />
       <span>Impact Compass<span class="cx-brand-sub">Understand · Reduce suffering · Care</span></span>
     </a>
-    <nav class="cx-nav"><a href="../"><span class="cx-nav-emoji">🧭</span>Open the app</a></nav>
+    <nav class="cx-nav"><a href="../"><span class="cx-nav-emoji">🧭</span>App</a><a href="{SITE}/compass/el/" class="cx-lang"><span class="cx-nav-emoji">🌐</span>ΕΛ</a></nav>
   </header>
   <main class="cx-main">
     <p class="cx-eyebrow">The Problem Atlas</p>

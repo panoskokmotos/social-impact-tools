@@ -80,6 +80,8 @@ button { font-family: inherit; }
 }
 .cx-nav a:hover { color: var(--text); background: var(--surface-2); }
 .cx-nav a.active { color: var(--gold); background: var(--gold-soft); }
+.cx-nav a.cx-lang { color: var(--gold); }
+.cx-nav a.cx-lang:hover { background: var(--gold-soft); }
 .cx-nav a .cx-nav-emoji { display: none; }
 
 /* Bottom tab bar on small screens */

@@ -146,8 +146,9 @@ def head(title: str, desc: str, canonical: str, en_alt: str, og_title: str, anal
       <span>Πυξίδα Αντικτύπου<span class="cx-brand-sub">Κατανόησε · Μείωσε τον πόνο · Νοιάξου</span></span>
     </a>
     <nav class="cx-nav" aria-label="Πλοήγηση">
-      <a href="./"><span class="cx-nav-emoji">🗺️</span>Όλα τα προβλήματα</a>
+      <a href="./"><span class="cx-nav-emoji">🗺️</span>Άτλας</a>
       <a href="../"><span class="cx-nav-emoji">🧭</span>Εφαρμογή</a>
+      <a href="{en_alt}" class="cx-lang"><span class="cx-nav-emoji">🌐</span>EN</a>
     </nav>
   </header>
 """
