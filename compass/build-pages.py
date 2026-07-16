@@ -365,6 +365,7 @@ def index_page(problems: list[dict], cats: dict, analytics_html: str) -> str:
     <p class="cx-sub">Each entry: the honest scale, root causes, who suffers, a misconception corrected, evidence-rated interventions, and concrete ways to help.</p>
 {email_capture('atlas-hub')}
     <div class="cx-atlas" style="margin-top:22px">{items}</div>
+    <p class="cx-sub" style="margin-top:26px;text-align:center">Run a site? <a href="{SITE}/compass/for-nonprofits.html">Add a live problem card to it, free.</a></p>
     <div class="cx-footer">Impact Compass · built by <a href="https://panoskokmotos.com">Panos Kokmotos</a> · powered by Claude AI</div>
   </main>
 {CAPTURE_SCRIPT}</body>
