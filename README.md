@@ -14,7 +14,7 @@ A standalone, installable PWA at `/compass/` — mission: increase knowledge and
 understanding, reduce suffering, expand the reach of care. Self-contained
 (everything path-relative, so it can move to its own domain untouched):
 
-- `compass/data.js` — the Problem Atlas: 20 curated world problems. Editorial
+- `compass/data.js` — the Problem Atlas: 25 curated world problems. Editorial
   rules live in the file header: approximate figures phrased as approximate,
   named sources, evidence ratings (`strong`/`promising`/`debated`), org types
   not real charities. **Add a problem here** and the app (atlas, plan dropdown,
