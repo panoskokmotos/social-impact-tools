@@ -242,3 +242,7 @@ async function sha256hex(str) {
   const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return [...new Uint8Array(d)].map(b => b.toString(16).padStart(2, '0')).join('');
 }
+
+// Exported for the round-trip crypto test (compass/worker/test-webpush.mjs).
+// Cloudflare ignores extra named exports; only `default` is the Worker.
+export { encryptPayload, vapidJwt, b64urlToBytes, bytesToB64url, hkdf, concat };

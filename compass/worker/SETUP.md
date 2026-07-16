@@ -55,10 +55,12 @@ curl https://compass-notify.<subdomain>.workers.dev/test
 ```
 - Sign yourself up in the app (email + "send push to this device"),
   then hit `/test` and confirm you receive both.
-- **Web push note:** the encryption (RFC 8291 aes128gcm + VAPID) is
-  implemented with Web Crypto but has not been exercised end-to-end in
-  this repo. If a push fails, check the Worker logs (`npx wrangler tail`)
-  — email is unaffected and is the guaranteed channel.
+- **Web push note:** the payload encryption (RFC 8291 aes128gcm) is
+  validated by a round-trip test — run `node compass/worker/test-webpush.mjs`
+  (it encrypts then independently decrypts and confirms the plaintext). What
+  that test can't cover is VAPID auth against a real push service, so still
+  send yourself one `/test` after deploy. If a push fails, check the Worker
+  logs (`npx wrangler tail`) — email is unaffected and is the guaranteed channel.
 
 ## 5. Done
 The cron in `wrangler.toml` (`0 8 * * *` = 08:00 UTC) sends the day's
