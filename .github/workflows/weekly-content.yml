@@ -1,0 +1,25 @@
+# Every Monday, open an issue with the week's ready-to-post content (both
+# angles, EN + EL) drawn live from the Atlas data. The weekly distribution
+# rhythm arrives in the inbox instead of relying on memory. Manual trigger
+# available via workflow_dispatch for testing.
+name: Weekly content reminder
+on:
+  schedule:
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compose this week's post
+        run: python3 .github/scripts/weekly-content.py
+      - name: Open the reminder issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue create --title "$(cat /tmp/title.txt)" --body-file /tmp/body.md
