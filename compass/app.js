@@ -435,10 +435,25 @@ function renderProblem(id) {
     moment.style.cssText = 'margin-top:12px;border-color:var(--gold)';
     moment.innerHTML = `
       <div style="font-weight:800;margin-bottom:4px">${headline}</div>
-      <div style="color:var(--text-dim);font-size:0.85rem">Understanding spreads person to person — pass this one on below 👇</div>
-      ${next ? `<a class="cx-btn cx-btn-ghost" style="margin-top:10px" href="#/problem/${next.id}">Next: ${next.emoji} ${esc(next.name)} →</a>` : ''}
+      <div style="color:var(--text-dim);font-size:0.85rem;margin-bottom:10px">Understanding counts double when it becomes one small act. Pick one:</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <a class="cx-chip" style="text-decoration:none" data-commit="plan" href="#/plan/${p.id}">⏱️ Start my 15-minute plan</a>
+        <a class="cx-chip" style="text-decoration:none" data-commit="money" href="${CX_TOOLS_SITE}/what-would-x-do.html" target="_blank" rel="noopener">💶 See what my money would do</a>
+        <button class="cx-chip" data-commit="share">📣 Tell one person</button>
+        <button class="cx-chip" data-commit="remind">🔔 Remind me daily</button>
+      </div>
+      ${next ? `<div style="margin-top:10px;font-size:0.8rem"><a href="#/problem/${next.id}" style="color:var(--text-dim)">or keep exploring: ${next.emoji} ${esc(next.name)} →</a></div>` : ''}
     `;
     this.closest('.cx-detail-ctas').insertAdjacentElement('afterend', moment);
+    // The commitment is the point: a chosen act, however small, is what
+    // turns a reader into a participant. Track which acts people choose.
+    moment.addEventListener('click', e => {
+      const el = e.target.closest('[data-commit]');
+      if (!el) return;
+      cxTrack('commit_choice', { problem: p.id, choice: el.dataset.commit });
+      if (el.dataset.commit === 'share') document.getElementById('cxShareProblem').click();
+      if (el.dataset.commit === 'remind') cxToggleNudge(el);
+    });
     cxTrack('milestone_shown', { count });
   });
 
