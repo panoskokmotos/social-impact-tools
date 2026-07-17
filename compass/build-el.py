@@ -394,7 +394,7 @@ def hub_page(items: list[dict], cats: dict, over: dict, analytics_html: str) -> 
     <div style="font-size:0.78rem;margin-bottom:14px"><a href="{en_alt}" style="color:var(--text-dim)">🌐 English</a></div>
     <p class="cx-eyebrow">Ο Άτλας των Προβλημάτων</p>
     <h1 class="cx-h1">{len(items)} προβλήματα που αξίζει να καταλάβεις</h1>
-    <p class="cx-sub">Για κάθε ένα: το πραγματικό του μέγεθος, η τάση, μια κοινή παρανόηση που διορθώνεται, και δρόμοι για να βοηθήσεις. Πλήρης ανάλυση και AI στην εφαρμογή.</p>
+    <p class="cx-sub">Για κάθε ένα: το πραγματικό του μέγεθος, η τάση, μια κοινή παρανόηση που διορθώνεται, και δρόμοι για να βοηθήσεις. Πλήρης ανάλυση και AI στην εφαρμογή. <a href="priorities.html">Δες τα ταξινομημένα με βάση το πόσο λύσιμα είναι →</a></p>
 {email_capture_el('atlas-hub')}
     <div class="cx-atlas" style="margin-top:22px">{cards}</div>
     <div class="cx-footer">Πυξίδα Αντικτύπου · από τον <a href="https://panoskokmotos.com">Πάνο Κοκμοτό</a> · με τη δύναμη του Claude AI</div>
@@ -404,11 +404,74 @@ def hub_page(items: list[dict], cats: dict, over: dict, analytics_html: str) -> 
 """
 
 
+def priorities_el_page(es: list[dict], over: dict, analytics_html: str) -> str:
+    """Greek edition of the priorities ranking — the beachhead's search page."""
+    buckets: dict[str, list] = {"known": [], "partial": [], "frontier": []}
+    for e in es:
+        strong = sum(1 for iv in e["en"]["interventions"] if iv["evidence"] == "strong")
+        key = "known" if strong >= 2 else "partial" if strong == 1 else "frontier"
+        buckets[key].append((e, strong))
+    trend_rank = {"worsening": 0, "mixed": 1, "improving": 2}
+    for lst in buckets.values():
+        lst.sort(key=lambda t: trend_rank[t[0]["dir"]])
+    META = {
+        "known": ("✅ Η λύση είναι γνωστή — λείπει η βούληση, όχι η γνώση",
+                  "Η ανθρωπότητα έχει ήδη αποδεδειγμένα εργαλεία απέναντί τους. Αυτό που λείπει είναι χρηματοδότηση και προσοχή — γι' αυτό είναι οι πιο γρήγορες νίκες στον πλανήτη."),
+        "partial": ("🧩 Εν μέρει λυμένα — ισχυρές ενδείξεις, ανοιχτά κενά",
+                    "Υπάρχει τουλάχιστον ένα αποδεδειγμένο εργαλείο, αλλά βασικά κομμάτια της λύσης ακόμη αναζητούνται."),
+        "frontier": ("🔬 Το σύνορο της γνώσης — λύσεις που πρέπει ακόμη να δημιουργηθούν",
+                     "Δεν υπάρχει ακόμη πλήρως αποδεδειγμένη συνταγή. Πρόοδος εδώ σημαίνει δημιουργία νέας γνώσης: έρευνα, πειράματα, καλύτεροι θεσμοί."),
+    }
+
+    def card(e: dict, strong: int) -> str:
+        total = len(e["en"]["interventions"])
+        pct = round(strong / total * 100)
+        return (
+            f'<a class="cx-card cx-problem-card" style="text-decoration:none;color:inherit" href="{e["id"]}.html">'
+            f'<div class="cx-problem-top"><span class="cx-problem-emoji">{e["emoji"]}</span>'
+            f'<span class="cx-badge cx-badge-{e["dir"]}">{esc(over["trend"][e["dir"]])}</span></div>'
+            f'<div class="cx-problem-name">{esc(e["name"])}</div>'
+            f'<div class="cx-problem-stat">{esc(e["stat"])}</div>'
+            f'<div style="display:flex;justify-content:space-between;font-size:0.68rem;color:var(--text-dim);margin:8px 0 4px"><span>Αποδεδειγμένα εργαλεία</span><span>{strong}/{total}</span></div>'
+            f'<div style="height:5px;border-radius:99px;background:var(--surface-2);overflow:hidden"><div style="height:100%;width:{pct}%;background:var(--gold)"></div></div>'
+            f'</a>')
+
+    sections = "".join(f"""
+    <div class="cx-section">
+      <div class="cx-section-label">{META[k][0]}</div>
+      <p style="color:var(--text-dim);font-size:0.85rem;margin:-4px 0 12px">{META[k][1]}</p>
+      <div class="cx-atlas">{''.join(card(e, s) for e, s in buckets[k])}</div>
+    </div>""" for k in ("known", "partial", "frontier"))
+
+    url = f"{SITE}/compass/el/priorities.html"
+    en_alt = f"{SITE}/compass/priorities.html"
+    return head(
+        "Τα μεγαλύτερα προβλήματα του κόσμου, με βάση το πόσο λύσιμα είναι",
+        "25 μεγάλα παγκόσμια προβλήματα ταξινομημένα με βάση το αν η ανθρωπότητα γνωρίζει ήδη πώς να τα λύσει — αποδεδειγμένα εργαλεία, μερικές λύσεις, και το σύνορο της γνώσης.",
+        url, en_alt, "📊 Τα προβλήματα του κόσμου, με βάση το πόσο λύσιμα είναι — Πυξίδα Αντικτύπου", analytics_html) + f"""
+  <main class="cx-main">
+    <div style="font-size:0.78rem;margin-bottom:14px"><a href="{en_alt}" style="color:var(--text-dim)">🌐 English</a></div>
+    <p class="cx-eyebrow">Προτεραιότητες</p>
+    <h1 class="cx-h1">Πού βρίσκεται η ανθρωπότητα;</h1>
+    <p class="cx-sub">Ταξινομημένα με την αρχή της αισιοδοξίας του David Deutsch: <em>τα προβλήματα είναι επιλύσιμα</em> — ό,τι δεν απαγορεύεται από τους νόμους της φύσης είναι εφικτό, με τη σωστή γνώση. Το ειλικρινές ερώτημα για κάθε πρόβλημα είναι αν η γνώση υπάρχει ήδη. Όπου υπάρχει, ανάμεσα σε εμάς και τη νίκη στέκονται μόνο η βούληση και οι πόροι. Σε κάθε ομάδα, τα προβλήματα που επιδεινώνονται εμφανίζονται πρώτα.</p>
+    {sections}
+    <div class="cx-detail-ctas" style="margin-top:26px">
+      <a class="cx-btn" href="./">🗺️ Όλα τα προβλήματα</a>
+      <a class="cx-btn cx-btn-ghost" href="../#/priorities">Άνοιξέ το στην εφαρμογή</a>
+    </div>
+    <div class="cx-footer">Πυξίδα Αντικτύπου · από τον <a href="https://panoskokmotos.com">Πάνο Κοκμοτό</a> · με τη δύναμη του Claude AI</div>
+  </main>
+</body>
+</html>
+"""
+
+
 def update_sitemap(items: list[dict]) -> None:
     sm = ROOT / "sitemap.xml"
     text = sm.read_text()
     block = "\n".join(
-        [f"  <url><loc>{SITE}/compass/el/</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>"] +
+        [f"  <url><loc>{SITE}/compass/el/</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>",
+         f"  <url><loc>{SITE}/compass/el/priorities.html</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>"] +
         [f"  <url><loc>{SITE}/compass/el/{e['id']}.html</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>"
          for e in items])
     wrapped = f"  <!-- compass-el:start (generated by compass/build-el.py) -->\n{block}\n  <!-- compass-el:end -->"
@@ -427,8 +490,9 @@ def main() -> None:
     for i, e in enumerate(es):
         (OUT / f"{e['id']}.html").write_text(problem_page(e, cats, over, es[i - 1], es[(i + 1) % len(es)], a))
     (OUT / "index.html").write_text(hub_page(es, cats, over, a))
+    (OUT / "priorities.html").write_text(priorities_el_page(es, over, a))
     update_sitemap(es)
-    print(f"generated {len(es)} Greek pages + hub, sitemap updated")
+    print(f"generated {len(es)} Greek pages + hub + priorities, sitemap updated")
 
 
 if __name__ == "__main__":

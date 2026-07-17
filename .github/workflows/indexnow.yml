@@ -1,0 +1,38 @@
+# Submit the site's URLs to IndexNow on every deploy, so Bing, DuckDuckGo,
+# Yandex, and other IndexNow engines discover changes immediately, without
+# waiting for a crawl. (Google doesn't support IndexNow; it's covered by the
+# sitemap in Search Console.) The key is public by design; the matching
+# <key>.txt at the domain root proves ownership.
+name: IndexNow
+on:
+  push:
+    branches: [main]
+    paths: ['sitemap.xml', '**.html']
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Submit sitemap URLs to IndexNow
+        run: |
+          python3 - <<'EOF'
+          import json, re, urllib.request
+          urls = re.findall(r"<loc>(.*?)</loc>", open("sitemap.xml").read())
+          key = "2816e800a85e0bc69692125c225b2bf4"
+          body = json.dumps({
+              "host": "tools.panoskokmotos.com",
+              "key": key,
+              "keyLocation": f"https://tools.panoskokmotos.com/{key}.txt",
+              "urlList": urls,
+          }).encode()
+          req = urllib.request.Request(
+              "https://api.indexnow.org/indexnow", data=body,
+              headers={"Content-Type": "application/json; charset=utf-8"})
+          try:
+              with urllib.request.urlopen(req, timeout=30) as r:
+                  print(f"IndexNow: HTTP {r.status} for {len(urls)} URLs")
+          except urllib.error.HTTPError as e:
+              print(f"IndexNow: HTTP {e.code} — {e.read().decode()[:200]}")
+          EOF
