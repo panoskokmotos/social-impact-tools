@@ -1,6 +1,6 @@
-# Curated "Do this now" actions — DRAFT for Panos's review
+# Curated "Do this now" actions — reference list
 
-**Status: draft, not wired into the app.** Nothing ships until you approve. This changes the app's editorial stance from "we never name organizations" to "we name criteria-based examples," so the decision is yours.
+**Status: approved and implemented.** The live data is `compass/data-actions.js` (rendered in the app and all static pages, named in the FAQ, allowed in the AI prompts). This file remains as the rationale record: why each organization was chosen, and which categories were deliberately left empty. If you edit the list, edit `data-actions.js` and regenerate the pages (`python3 compass/build-pages.py && python3 compass/build-el.py`).
 
 ## What this is
 

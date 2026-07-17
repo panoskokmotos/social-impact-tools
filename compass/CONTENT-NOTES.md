@@ -73,6 +73,19 @@ corruption.
 3. Evidence ratings: `strong` (multiple RCTs / broad consensus), `promising`
    (good but thinner), `debated` (experts disagree) — and every problem names
    at least one popular-but-overrated approach where the evidence supports it.
-4. Org types, never real charity names. Acting routes through the AI for
-   Social Impact tools and Givelink.
+4. Named organizations are criteria-based examples only, curated in
+   `data-actions.js` (one or two per problem, chosen for evidence and
+   transparency, GiveWell/ACE where available, always with the no-affiliation
+   disclaimer; rationale in `CURATED-ACTIONS-DRAFT.md`). Beyond those, org
+   types only. Acting also routes through the AI for Social Impact tools and
+   Givelink.
 5. No guilt, no doom: agency and honesty.
+
+## Decay watch — curated organizations
+
+The `data-actions.js` list decays like the figures do: organizations change
+programs, URLs move, and GiveWell/ACE recommendations are re-evaluated
+roughly yearly. Re-verify the list against the current GiveWell top
+charities and ACE recommendations at least once a year, and drop any entry
+before letting it go stale — an empty category renders fine (digital
+exclusion ships empty by design).
