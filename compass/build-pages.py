@@ -409,8 +409,19 @@ def index_page(problems: list[dict], cats: dict, analytics_html: str) -> str:
 """
 
 
-def _page_shell(title: str, desc: str, canonical: str, body: str, analytics_html: str) -> str:
-    """Compact shell for the standalone compass pages (priorities, best world)."""
+def _page_shell(title: str, desc: str, canonical: str, body: str, analytics_html: str,
+                 el_href: str = "./el/", hreflang_el: str | None = None) -> str:
+    """Compact shell for the standalone compass pages (priorities, best world).
+    el_href: language-switcher link target (defaults to the Greek hub).
+    hreflang_el: canonical URL of this page's Greek counterpart, if one
+    exists — emits reciprocal hreflang so search engines don't discard the
+    Greek page's one-sided link back to this one."""
+    hreflang_tags = ""
+    if hreflang_el:
+        hreflang_tags = f"""
+  <link rel="alternate" hreflang="en" href="{canonical}" />
+  <link rel="alternate" hreflang="el" href="{hreflang_el}" />
+  <link rel="alternate" hreflang="x-default" href="{canonical}" />"""
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -425,7 +436,7 @@ def _page_shell(title: str, desc: str, canonical: str, body: str, analytics_html
   <link rel="icon" href="./icon.svg" type="image/svg+xml" />
   <meta name="theme-color" content="#0a0f1e" />
   <meta name="robots" content="index, follow, max-image-preview:large" />
-  <link rel="canonical" href="{canonical}" />
+  <link rel="canonical" href="{canonical}" />{hreflang_tags}
   <meta property="og:title" content="{esc(title)}" />
   <meta property="og:description" content="{esc(desc)}" />
   <meta property="og:url" content="{canonical}" />
@@ -441,7 +452,7 @@ def _page_shell(title: str, desc: str, canonical: str, body: str, analytics_html
     <nav class="cx-nav" aria-label="Site navigation">
       <a href="./"><span class="cx-nav-emoji">🧭</span>App</a>
       <a href="./p/"><span class="cx-nav-emoji">🗺️</span>All problems</a>
-      <a href="./el/" class="cx-lang"><span class="cx-nav-emoji">🌐</span>ΕΛ</a>
+      <a href="{el_href}" class="cx-lang"><span class="cx-nav-emoji">🌐</span>ΕΛ</a>
     </nav>
   </header>
   <main class="cx-main">
@@ -502,7 +513,8 @@ def priorities_page(problems: list[dict], analytics_html: str) -> str:
     return _page_shell(
         "The World's Biggest Problems, Ranked by How Solvable They Are",
         "25 major world problems sorted by whether humanity already knows how to solve them — proven tools, partial solutions, and the knowledge frontier. Based on evidence-rated interventions.",
-        f"{SITE}/compass/priorities.html", body, analytics_html)
+        f"{SITE}/compass/priorities.html", body, analytics_html,
+        el_href="el/priorities.html", hreflang_el=f"{SITE}/compass/el/priorities.html")
 
 
 VISIONS = [

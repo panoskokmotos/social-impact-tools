@@ -8,6 +8,7 @@ on:
   push:
     branches: [main]
     paths: ['sitemap.xml', '**.html']
+  workflow_dispatch:
 
 jobs:
   submit:
