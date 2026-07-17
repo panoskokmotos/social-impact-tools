@@ -252,16 +252,19 @@ def problem_page(e: dict, cats: dict, over: dict, prev_e: dict, next_e: dict, an
     cause_q = quote(e["en_name"])  # tools match on the English cause name
 
     share_text = f"{e['emoji']} {e['name']}: {e['stat']}. Δες τι πραγματικά λειτουργεί:"
-    su, st = quote(url), quote(share_text)
-    stu = quote(share_text + " " + url)
+    st = quote(share_text)
+    # Attributed per network so analytics show which share loop carries.
+    def _sh(net: str) -> str:
+        return quote(f"{url}?utm_source=share&utm_medium={net}")
+    stu = quote(f"{share_text} {url}?utm_source=share&utm_medium=whatsapp")
     share_html = f"""
     <div class="cx-section">
       <div class="cx-section-label">📣 Μοιράσου το</div>
       <div style="display:flex;flex-wrap:wrap;gap:8px">
-        <a class="cx-chip" href="https://twitter.com/intent/tweet?text={st}&amp;url={su}" target="_blank" rel="noopener">𝕏 Post</a>
+        <a class="cx-chip" href="https://twitter.com/intent/tweet?text={st}&amp;url={_sh('x')}" target="_blank" rel="noopener">𝕏 Post</a>
         <a class="cx-chip" href="https://wa.me/?text={stu}" target="_blank" rel="noopener">💬 WhatsApp</a>
-        <a class="cx-chip" href="https://www.linkedin.com/sharing/share-offsite/?url={su}" target="_blank" rel="noopener">in LinkedIn</a>
-        <a class="cx-chip" href="https://www.facebook.com/sharer/sharer.php?u={su}" target="_blank" rel="noopener">f Facebook</a>
+        <a class="cx-chip" href="https://www.linkedin.com/sharing/share-offsite/?url={_sh('linkedin')}" target="_blank" rel="noopener">in LinkedIn</a>
+        <a class="cx-chip" href="https://www.facebook.com/sharer/sharer.php?u={_sh('facebook')}" target="_blank" rel="noopener">f Facebook</a>
       </div>
     </div>"""
 

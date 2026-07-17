@@ -148,16 +148,19 @@ def page(p: dict, cats: dict, prev_p: dict, next_p: dict, analytics_html: str) -
     u = p["understand"]
 
     share_text = f"{p['emoji']} {p['name']}: {p['stat']}. See what actually works:"
-    su, st = quote(url), quote(share_text)
-    stu = quote(share_text + " " + url)
+    st = quote(share_text)
+    # Attributed per network so analytics show which share loop carries.
+    def _sh(net: str) -> str:
+        return quote(f"{url}?utm_source=share&utm_medium={net}")
+    stu = quote(f"{share_text} {url}?utm_source=share&utm_medium=whatsapp")
     share_html = f"""
     <div class="cx-section">
       <div class="cx-section-label">📣 Share this</div>
       <div style="display:flex;flex-wrap:wrap;gap:8px">
-        <a class="cx-chip" href="https://twitter.com/intent/tweet?text={st}&amp;url={su}" target="_blank" rel="noopener">𝕏 Post</a>
+        <a class="cx-chip" href="https://twitter.com/intent/tweet?text={st}&amp;url={_sh('x')}" target="_blank" rel="noopener">𝕏 Post</a>
         <a class="cx-chip" href="https://wa.me/?text={stu}" target="_blank" rel="noopener">💬 WhatsApp</a>
-        <a class="cx-chip" href="https://www.linkedin.com/sharing/share-offsite/?url={su}" target="_blank" rel="noopener">in LinkedIn</a>
-        <a class="cx-chip" href="https://www.facebook.com/sharer/sharer.php?u={su}" target="_blank" rel="noopener">f Facebook</a>
+        <a class="cx-chip" href="https://www.linkedin.com/sharing/share-offsite/?url={_sh('linkedin')}" target="_blank" rel="noopener">in LinkedIn</a>
+        <a class="cx-chip" href="https://www.facebook.com/sharer/sharer.php?u={_sh('facebook')}" target="_blank" rel="noopener">f Facebook</a>
       </div>
     </div>"""
 

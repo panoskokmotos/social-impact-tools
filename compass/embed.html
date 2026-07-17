@@ -71,7 +71,7 @@
           return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
         });
       }
-      var page = 'https://tools.panoskokmotos.com/compass/p/' + p.id + '.html';
+      var page = 'https://tools.panoskokmotos.com/compass/p/' + p.id + '.html?utm_source=embed&utm_medium=widget';
       document.getElementById('card').innerHTML =
         '<div class="top"><span class="emoji">' + p.emoji + '</span>' +
         '<span class="name">' + esc(p.name) + '</span>' +
@@ -79,7 +79,7 @@
         '<div class="stat">' + esc(p.stat) + '.</div>' +
         '<div class="mis"><b>Common misconception</b>' + esc(p.understand.misconception) + '</div>' +
         '<div class="foot"><a class="cta" href="' + page + '" target="_blank" rel="noopener">Understand &amp; act →</a>' +
-        '<a class="brand" href="https://tools.panoskokmotos.com/compass/" target="_blank" rel="noopener">🧭 Impact Compass</a></div>';
+        '<a class="brand" href="https://tools.panoskokmotos.com/compass/?utm_source=embed&utm_medium=widget" target="_blank" rel="noopener">🧭 Impact Compass</a></div>';
       document.title = p.name + ' — Impact Compass card';
     })();
   </script>

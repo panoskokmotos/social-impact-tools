@@ -311,12 +311,13 @@ function renderProblem(id) {
   const done = !!cxState.understood[p.id];
   const u = p.understand;
   // Share-intent targets: the static page carries this problem's OG card,
-  // so each network pulls the right preview when the link is shared.
+  // so each network pulls the right preview when the link is shared. Every
+  // URL is attributed per network so the funnel shows which loop carries.
   const shareUrl = `${CX_TOOLS_SITE}/compass/p/${p.id}.html`;
   const shareText = `${p.emoji} ${p.name}: ${p.stat}. See what actually works:`;
-  const _su = encodeURIComponent(shareUrl);
+  const _sh = net => encodeURIComponent(`${shareUrl}?utm_source=share&utm_medium=${net}`);
   const _st = encodeURIComponent(shareText);
-  const _stu = encodeURIComponent(shareText + ' ' + shareUrl);
+  const _stu = net => encodeURIComponent(`${shareText} ${shareUrl}?utm_source=share&utm_medium=${net}`);
 
   cxView().innerHTML = `
     <a class="cx-back" href="#/atlas">← Atlas</a>
@@ -382,10 +383,10 @@ function renderProblem(id) {
     </div>
 
     <div class="cx-share-row" id="cxShareRow" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px">
-      <a class="cx-chip" data-net="x" href="https://twitter.com/intent/tweet?text=${_st}&url=${_su}" target="_blank" rel="noopener">𝕏 Post</a>
-      <a class="cx-chip" data-net="whatsapp" href="https://wa.me/?text=${_stu}" target="_blank" rel="noopener">💬 WhatsApp</a>
-      <a class="cx-chip" data-net="linkedin" href="https://www.linkedin.com/sharing/share-offsite/?url=${_su}" target="_blank" rel="noopener">in LinkedIn</a>
-      <a class="cx-chip" data-net="facebook" href="https://www.facebook.com/sharer/sharer.php?u=${_su}" target="_blank" rel="noopener">f Facebook</a>
+      <a class="cx-chip" data-net="x" href="https://twitter.com/intent/tweet?text=${_st}&url=${_sh('x')}" target="_blank" rel="noopener">𝕏 Post</a>
+      <a class="cx-chip" data-net="whatsapp" href="https://wa.me/?text=${_stu('whatsapp')}" target="_blank" rel="noopener">💬 WhatsApp</a>
+      <a class="cx-chip" data-net="linkedin" href="https://www.linkedin.com/sharing/share-offsite/?url=${_sh('linkedin')}" target="_blank" rel="noopener">in LinkedIn</a>
+      <a class="cx-chip" data-net="facebook" href="https://www.facebook.com/sharer/sharer.php?u=${_sh('facebook')}" target="_blank" rel="noopener">f Facebook</a>
     </div>
 
     <div class="cx-section">
@@ -418,12 +419,33 @@ function renderProblem(id) {
     // Update in place — a full re-render would wipe an in-progress AI chat.
     this.classList.add('done');
     this.textContent = '✓ Understood';
+    // The moment of pride is the moment understanding spreads: mark the
+    // milestone, invite the pass-on, and point at the next problem.
+    const count = Object.keys(cxState.understood).length;
+    const total = COMPASS_PROBLEMS.length;
+    const next = COMPASS_PROBLEMS.find(x => !cxState.understood[x.id]);
+    const headline =
+      count === 1 ? '🎉 Your first problem understood.' :
+      count === 5 ? `🌍 ${count} of ${total} understood — you already know more than most.` :
+      count === 10 ? `🗺️ ${count} of ${total} — you're building a real map of the world.` :
+      count === total ? `🏆 All ${total} understood. That knowledge is rare — use it.` :
+      `✨ ${count} of ${total} understood.`;
+    const moment = document.createElement('div');
+    moment.className = 'cx-card cx-moment';
+    moment.style.cssText = 'margin-top:12px;border-color:var(--gold)';
+    moment.innerHTML = `
+      <div style="font-weight:800;margin-bottom:4px">${headline}</div>
+      <div style="color:var(--text-dim);font-size:0.85rem">Understanding spreads person to person — pass this one on below 👇</div>
+      ${next ? `<a class="cx-btn cx-btn-ghost" style="margin-top:10px" href="#/problem/${next.id}">Next: ${next.emoji} ${esc(next.name)} →</a>` : ''}
+    `;
+    this.closest('.cx-detail-ctas').insertAdjacentElement('afterend', moment);
+    cxTrack('milestone_shown', { count });
   });
 
   document.getElementById('cxShareProblem').addEventListener('click', async function () {
-    cxTrack('share_click', { problem: p.id, where: 'problem' });
+    cxTrack('share_click', { problem: p.id, where: 'problem', network: 'native' });
     // share the static page — per-problem title/preview, opens without JS
-    const url = new URL('p/' + p.id + '.html', location.href).href;
+    const url = shareUrl + '?utm_source=share&utm_medium=native';
     const text = `${p.emoji} ${p.name}: ${p.stat}. Understand it and see what actually works:`;
     try {
       if (navigator.share) { await navigator.share({ title: 'Impact Compass — ' + p.name, text, url }); return; }
@@ -625,6 +647,24 @@ function drawPlans() {
   wrap.innerHTML = cxState.plans.map(plan => {
     const p = compassProblem(plan.problemId);
     const doneCount = plan.steps.filter(s => s.done).length;
+    const complete = plan.steps.length > 0 && doneCount === plan.steps.length;
+    // Completing a plan is the product's proudest moment — celebrate it and
+    // invite the pass-on right there, with attributed links.
+    let celebration = '';
+    if (complete && p) {
+      const cUrl = `${CX_TOOLS_SITE}/compass/p/${p.id}.html`;
+      const cText = `I just completed my ${plan.steps.length}-step action plan against ${p.name} on Impact Compass. 🧭 Build yours:`;
+      const cs = net => encodeURIComponent(`${cUrl}?utm_source=share&utm_medium=${net}&utm_campaign=plan_complete`);
+      celebration = `
+        <div class="cx-plan-complete" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+          <div style="font-weight:800">🎉 Plan complete — that's real action against ${esc(p.name)}.</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
+            <a class="cx-chip" data-plan-share="x" href="https://twitter.com/intent/tweet?text=${encodeURIComponent(cText)}&url=${cs('x')}" target="_blank" rel="noopener">𝕏 Share it</a>
+            <a class="cx-chip" data-plan-share="whatsapp" href="https://wa.me/?text=${encodeURIComponent(cText + ' ')}${cs('whatsapp')}" target="_blank" rel="noopener">💬 WhatsApp</a>
+            <a class="cx-chip" style="text-decoration:none" href="#/atlas">Understand another →</a>
+          </div>
+        </div>`;
+    }
     return `
       <div class="cx-card cx-plan-card" data-plan="${plan.id}">
         <div class="cx-plan-head">
@@ -639,8 +679,17 @@ function drawPlans() {
             <input type="checkbox" data-step="${i}" ${s.done ? 'checked' : ''} />
             <span>${esc(s.text)}</span>
           </label>`).join('')}
+        ${celebration}
       </div>`;
   }).join('');
+
+  wrap.querySelectorAll('[data-plan-share]').forEach(a => {
+    a.addEventListener('click', () => {
+      const planId = a.closest('[data-plan]').dataset.plan;
+      const plan = cxState.plans.find(pl => pl.id === planId);
+      cxTrack('share_click', { where: 'plan_complete', network: a.dataset.planShare, problem: plan && plan.problemId });
+    });
+  });
 
   wrap.querySelectorAll('input[data-step]').forEach(cb => {
     cb.addEventListener('change', () => {
@@ -648,6 +697,11 @@ function drawPlans() {
       const plan = cxState.plans.find(pl => pl.id === planId);
       if (!plan) return;
       plan.steps[+cb.dataset.step].done = cb.checked;
+      // Fire plan_completed exactly once, the first time every step is done.
+      if (!plan.completedAt && plan.steps.length && plan.steps.every(s => s.done)) {
+        plan.completedAt = Date.now();
+        cxTrack('plan_completed', { problem: plan.problemId, steps: plan.steps.length });
+      }
       cxSave();
       drawPlans();
     });
@@ -724,9 +778,9 @@ function renderJourney() {
   cxWireDailyDelivery();
 
   document.getElementById('cxShare').addEventListener('click', async () => {
-    cxTrack('share_click', { where: 'journey' });
+    cxTrack('share_click', { where: 'journey', network: 'native' });
     const text = `I'm using Impact Compass to understand the world's biggest problems and act on them — ${ids.length}/${total} problems understood, ${cxStepsDone()} action steps done. 🧭`;
-    const url = location.origin + location.pathname;
+    const url = location.origin + location.pathname + '?utm_source=share&utm_medium=journey';
     try {
       if (navigator.share) { await navigator.share({ title: 'Impact Compass', text, url }); return; }
       await navigator.clipboard.writeText(text + ' ' + url);
