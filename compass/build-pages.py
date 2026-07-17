@@ -410,18 +410,22 @@ def index_page(problems: list[dict], cats: dict, analytics_html: str) -> str:
 
 
 def _page_shell(title: str, desc: str, canonical: str, body: str, analytics_html: str,
-                 el_href: str = "./el/", hreflang_el: str | None = None) -> str:
+                 el_href: str = "./el/", hreflang_el: str | None = None,
+                 og_image: str | None = None) -> str:
     """Compact shell for the standalone compass pages (priorities, best world).
     el_href: language-switcher link target (defaults to the Greek hub).
     hreflang_el: canonical URL of this page's Greek counterpart, if one
     exists — emits reciprocal hreflang so search engines don't discard the
-    Greek page's one-sided link back to this one."""
+    Greek page's one-sided link back to this one.
+    og_image: dedicated 1200x630 share-preview image; falls back to the
+    generic site card when a page doesn't have one of its own."""
     hreflang_tags = ""
     if hreflang_el:
         hreflang_tags = f"""
   <link rel="alternate" hreflang="en" href="{canonical}" />
   <link rel="alternate" hreflang="el" href="{hreflang_el}" />
   <link rel="alternate" hreflang="x-default" href="{canonical}" />"""
+    image = og_image or f"{SITE}/og-ai-tools.png"
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -440,8 +444,11 @@ def _page_shell(title: str, desc: str, canonical: str, body: str, analytics_html
   <meta property="og:title" content="{esc(title)}" />
   <meta property="og:description" content="{esc(desc)}" />
   <meta property="og:url" content="{canonical}" />
-  <meta property="og:image" content="{SITE}/og-ai-tools.png" />
+  <meta property="og:image" content="{image}" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="{image}" />
 </head>
 <body>
   <header class="cx-topbar">
@@ -514,7 +521,8 @@ def priorities_page(problems: list[dict], analytics_html: str) -> str:
         "The World's Biggest Problems, Ranked by How Solvable They Are",
         "25 major world problems sorted by whether humanity already knows how to solve them — proven tools, partial solutions, and the knowledge frontier. Based on evidence-rated interventions.",
         f"{SITE}/compass/priorities.html", body, analytics_html,
-        el_href="el/priorities.html", hreflang_el=f"{SITE}/compass/el/priorities.html")
+        el_href="el/priorities.html", hreflang_el=f"{SITE}/compass/el/priorities.html",
+        og_image=f"{SITE}/compass/og/priorities.jpg")
 
 
 VISIONS = [
@@ -572,7 +580,8 @@ def bestworld_page(problems: list[dict], analytics_html: str) -> str:
     return _page_shell(
         "The Best World, According to Philosophers — and What Blocks the Road",
         "Eight philosophical visions of the best possible world, from Aristotle's flourishing to Deutsch's beginning of infinity — and the world problems that block every route to them.",
-        f"{SITE}/compass/best-world.html", body, analytics_html)
+        f"{SITE}/compass/best-world.html", body, analytics_html,
+        og_image=f"{SITE}/compass/og/best-world.jpg")
 
 
 def update_sitemap(problems: list[dict]) -> None:

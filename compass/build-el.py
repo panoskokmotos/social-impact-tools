@@ -224,7 +224,13 @@ CAPTURE_SCRIPT = """  <script src="../notify.js"></script>
 """
 
 
-def head(title: str, desc: str, canonical: str, en_alt: str, og_title: str, analytics_html: str, extra_head: str = "") -> str:
+def head(title: str, desc: str, canonical: str, en_alt: str, og_title: str, analytics_html: str,
+         extra_head: str = "", og_image: str | None = None) -> str:
+    # Reuse the same per-problem image the English page uses where one
+    # exists — a topic-correct preview beats the generic fallback even
+    # though the baked-in labels are English (the cards predate the
+    # Greek edition; a Greek-labeled set is a follow-up, not this fix).
+    image = og_image or f"{SITE}/og-ai-tools.png"
     return f"""<!DOCTYPE html>
 <html lang="el">
 <head>
@@ -247,10 +253,12 @@ def head(title: str, desc: str, canonical: str, en_alt: str, og_title: str, anal
   <meta property="og:description" content="{esc(desc)}" />
   <meta property="og:type" content="article" />
   <meta property="og:url" content="{canonical}" />
-  <meta property="og:image" content="{SITE}/og-ai-tools.png" />
+  <meta property="og:image" content="{image}" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
   <meta property="og:locale" content="el_GR" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:image" content="{SITE}/og-ai-tools.png" />
+  <meta name="twitter:image" content="{image}" />
   {extra_head}
 </head>
 <body>
@@ -330,7 +338,8 @@ def problem_page(e: dict, cats: dict, over: dict, prev_e: dict, next_e: dict, an
       <div class="cx-card cx-fact-mis"><div class="cx-fact-v">{esc(e['misconception'])}</div></div>
     </div>"""
 
-    return head(title, desc, url, en_alt, f"{e['emoji']} {e['name']} — Πυξίδα Αντικτύπου", analytics_html, extra_head) + f"""
+    return head(title, desc, url, en_alt, f"{e['emoji']} {e['name']} — Πυξίδα Αντικτύπου", analytics_html, extra_head,
+                og_image=f"{SITE}/compass/og/{e['id']}.jpg") + f"""
   <main class="cx-main">
     <div style="font-size:0.78rem;margin-bottom:14px"><a href="{en_alt}" style="color:var(--text-dim)">🌐 English</a></div>
     <div class="cx-detail-head">
