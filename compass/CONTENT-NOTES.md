@@ -89,3 +89,13 @@ roughly yearly. Re-verify the list against the current GiveWell top
 charities and ACE recommendations at least once a year, and drop any entry
 before letting it go stale — an empty category renders fine (digital
 exclusion ships empty by design).
+
+## Problem thumbnails — `compass/img/<id>.jpg`
+
+Every Atlas card shows a 640×360 thumbnail from `compass/img/<id>.jpg`.
+The current set is generated in-brand (category gradient + emoji + title),
+deliberately not stock photos of suffering people. To replace any of them
+with a real licensed photograph, overwrite the file at the same path and
+filename — no code changes anywhere. Keep 16:9, roughly 640×360, and be
+careful with dignity: show the problem or the solution at work, not
+suffering staged for sympathy.

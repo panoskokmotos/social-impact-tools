@@ -359,13 +359,14 @@ def page(p: dict, cats: dict, prev_p: dict, next_p: dict, analytics_html: str, d
 
 def index_page(problems: list[dict], cats: dict, analytics_html: str) -> str:
     items = "\n".join(
-        f'<a class="cx-card cx-problem-card" style="text-decoration:none;color:inherit" href="{p["id"]}.html">'
-        f'<div class="cx-problem-top"><span class="cx-problem-emoji">{p["emoji"]}</span>'
-        f'<span class="cx-badge cx-badge-{p["trend"]["dir"]}">{TREND_LABEL[p["trend"]["dir"]]}</span></div>'
+        f'<a class="cx-card cx-problem-card cx-media-card" style="text-decoration:none;color:inherit" href="{p["id"]}.html">'
+        f'<div class="cx-card-media"><img src="../img/{p["id"]}.jpg" alt="" loading="lazy" width="640" height="360">'
+        f'<span class="cx-badge cx-badge-{p["trend"]["dir"]} cx-media-badge">{TREND_LABEL[p["trend"]["dir"]]}</span></div>'
+        f'<div class="cx-card-body">'
         f'<div class="cx-problem-name">{esc(p["name"])}</div>'
         f'<div class="cx-problem-stat">{esc(p["stat"])}</div>'
         f'<div class="cx-problem-foot"><span class="cx-badge cx-badge-cat">{cats[p["category"]]["emoji"]} {esc(cats[p["category"]]["name"])}</span></div>'
-        f'</a>' for p in problems)
+        f'</div></a>' for p in problems)
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>

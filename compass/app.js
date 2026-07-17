@@ -295,35 +295,56 @@ function renderAtlas() {
       ${Object.entries(COMPASS_CATEGORIES).map(([k, c]) =>
         `<button class="cx-chip" data-cat="${k}">${c.emoji} ${c.name}</button>`).join('')}
     </div>
+    <div class="cx-filters cx-sort-row" id="cxSort">
+      <span class="cx-sort-label">Sort</span>
+      <button class="cx-chip active" data-sort="default">Curated</button>
+      <button class="cx-chip" data-sort="worsening">↘ Getting worse first</button>
+      <button class="cx-chip" data-sort="improving">↗ Improving first</button>
+      <button class="cx-chip" data-sort="proven">✅ Most proven tools</button>
+    </div>
     <div class="cx-atlas" id="cxAtlas"></div>
     ${cxFooter()}
   `;
 
   const grid = document.getElementById('cxAtlas');
-  const draw = (cat) => {
-    const list = COMPASS_PROBLEMS.filter(p => cat === 'all' || p.category === cat);
+  const trendRank = { worsening: 0, mixed: 1, improving: 2 };
+  const provenCount = p => p.interventions.filter(iv => iv.evidence === 'strong').length;
+  let curCat = 'all', curSort = 'default';
+  const draw = () => {
+    let list = COMPASS_PROBLEMS.filter(p => curCat === 'all' || p.category === curCat);
+    if (curSort === 'worsening') list = [...list].sort((a, b) => trendRank[a.trend.dir] - trendRank[b.trend.dir]);
+    else if (curSort === 'improving') list = [...list].sort((a, b) => trendRank[b.trend.dir] - trendRank[a.trend.dir]);
+    else if (curSort === 'proven') list = [...list].sort((a, b) => provenCount(b) - provenCount(a));
     grid.innerHTML = list.map(p => `
-      <a class="cx-card cx-problem-card" href="#/problem/${p.id}">
-        <div class="cx-problem-top">
-          <span class="cx-problem-emoji">${p.emoji}</span>
-          <span class="cx-badge cx-badge-${p.trend.dir}">${TREND_LABEL[p.trend.dir]}</span>
+      <a class="cx-card cx-problem-card cx-media-card" href="#/problem/${p.id}">
+        <div class="cx-card-media">
+          <img src="img/${p.id}.jpg" alt="" loading="lazy" width="640" height="360">
+          <span class="cx-badge cx-badge-${p.trend.dir} cx-media-badge">${TREND_LABEL[p.trend.dir]}</span>
         </div>
-        <div class="cx-problem-name">${esc(p.name)}</div>
-        <div class="cx-problem-stat">${esc(p.stat)}</div>
-        <div class="cx-problem-foot">
-          <span class="cx-badge cx-badge-cat">${COMPASS_CATEGORIES[p.category].emoji} ${COMPASS_CATEGORIES[p.category].name}</span>
-          ${cxState.understood[p.id] ? '<span class="cx-problem-done">✓ Understood</span>' : ''}
+        <div class="cx-card-body">
+          <div class="cx-problem-name">${esc(p.name)}</div>
+          <div class="cx-problem-stat">${esc(p.stat)}</div>
+          <div class="cx-problem-foot">
+            <span class="cx-badge cx-badge-cat">${COMPASS_CATEGORIES[p.category].emoji} ${COMPASS_CATEGORIES[p.category].name}</span>
+            ${curSort === 'proven' ? `<span class="cx-proven-count">${provenCount(p)} proven</span>` : ''}
+            ${cxState.understood[p.id] ? '<span class="cx-problem-done">✓ Understood</span>' : ''}
+          </div>
         </div>
       </a>`).join('');
   };
-  draw('all');
-  document.getElementById('cxFilters').addEventListener('click', e => {
-    const btn = e.target.closest('.cx-chip');
-    if (!btn) return;
-    document.querySelectorAll('#cxFilters .cx-chip').forEach(c => c.classList.remove('active'));
-    btn.classList.add('active');
-    draw(btn.dataset.cat);
-  });
+  draw();
+  const chipRow = (rowId, dataKey, apply) => {
+    document.getElementById(rowId).addEventListener('click', e => {
+      const btn = e.target.closest('.cx-chip');
+      if (!btn) return;
+      document.querySelectorAll(`#${rowId} .cx-chip`).forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      apply(btn.dataset[dataKey]);
+      draw();
+    });
+  };
+  chipRow('cxFilters', 'cat', v => { curCat = v; });
+  chipRow('cxSort', 'sort', v => { curSort = v; cxTrack('atlas_sort', { sort: v }); });
 }
 
 /* Priorities view — David Deutsch's optimism principle as a sorting lens:

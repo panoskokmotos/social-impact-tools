@@ -386,13 +386,14 @@ def problem_page(e: dict, cats: dict, over: dict, prev_e: dict, next_e: dict, an
 
 def hub_page(items: list[dict], cats: dict, over: dict, analytics_html: str) -> str:
     cards = "\n".join(
-        f'<a class="cx-card cx-problem-card" style="text-decoration:none;color:inherit" href="{e["id"]}.html">'
-        f'<div class="cx-problem-top"><span class="cx-problem-emoji">{e["emoji"]}</span>'
-        f'<span class="cx-badge cx-badge-{e["dir"]}">{esc(over["trend"][e["dir"]])}</span></div>'
+        f'<a class="cx-card cx-problem-card cx-media-card" style="text-decoration:none;color:inherit" href="{e["id"]}.html">'
+        f'<div class="cx-card-media"><img src="../img/{e["id"]}.jpg" alt="" loading="lazy" width="640" height="360">'
+        f'<span class="cx-badge cx-badge-{e["dir"]} cx-media-badge">{esc(over["trend"][e["dir"]])}</span></div>'
+        f'<div class="cx-card-body">'
         f'<div class="cx-problem-name">{esc(e["name"])}</div>'
         f'<div class="cx-problem-stat">{esc(e["stat"])}</div>'
         f'<div class="cx-problem-foot"><span class="cx-badge cx-badge-cat">{cats[e["category"]]["emoji"]} {esc(over["categories"][e["category"]])}</span></div>'
-        f'</a>' for e in items)
+        f'</div></a>' for e in items)
     url = f"{SITE}/compass/el/"
     en_alt = f"{SITE}/compass/p/"
     return head(
