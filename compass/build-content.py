@@ -19,7 +19,7 @@ from pathlib import Path
 
 COMPASS = Path(__file__).resolve().parent
 SITE = "https://tools.panoskokmotos.com"
-BATCH = 10  # how many problems to draft this round
+BATCH = 25  # how many problems to draft this round (full Atlas)
 
 
 def load():
@@ -57,6 +57,31 @@ def en_post(p: dict) -> str:
         f"A common misconception: {p['understand']['misconception']}\n\n"
         f"What the evidence actually points to: {iv['name']} — {first_sentence(iv['what'])} {first_sentence(iv['cost'])}\n\n"
         f"Understand it in three minutes, and see concrete ways to help:\n{link}"
+    )
+
+
+def en_trend_post(p: dict) -> str:
+    """Short second angle: where the trend stands. Hope or urgency, honestly."""
+    link = f"{SITE}/compass/p/{p['id']}.html"
+    return (
+        f"{p['emoji']} Where {p['name'].lower()} stands right now: {p['trend']['text']}\n\n"
+        f"The scale: {p['stat']}.\n\n"
+        f"What the evidence says actually works, and what you can do:\n{link}"
+    )
+
+
+def el_trend_post(p: dict, over: dict) -> str | None:
+    o = over["problems"].get(p["id"], {})
+    if not over.get("deep", {}).get(p["id"]):
+        return None
+    name = o.get("name", p["name"])
+    stat = o.get("stat", p["stat"])
+    trend = o.get("trend", p["trend"]["text"])
+    link = f"{SITE}/compass/el/{p['id']}.html"
+    return (
+        f"{p['emoji']} Πού βρίσκεται σήμερα το πρόβλημα «{name}»: {trend}\n\n"
+        f"Το μέγεθος: {stat}.\n\n"
+        f"Τι δείχνουν τα στοιχεία ότι πραγματικά λειτουργεί, και τι μπορείς να κάνεις:\n{link}"
     )
 
 
@@ -107,18 +132,20 @@ Short, warm, no pressure. Personalize the first line to their work.
 def main() -> None:
     problems, over = load()
     batch = problems[:BATCH]
-    out = ["# Impact Compass — content kit (batch 1)",
+    out = ["# Impact Compass — content kit (full Atlas)",
            "",
            "Ready-to-post drafts straight from the Atlas, so every figure is accurate. "
-           "Each is one problem, one misconception people believe, one thing that actually "
-           "works, one link. Post to LinkedIn, the Givelink email list, and Greek communities. "
-           "Edit freely, the facts are the load-bearing part.",
+           "Two angles per problem, in English and Greek. Angle A: one misconception "
+           "people believe, one thing that actually works, one link. Angle B: a short "
+           "where-the-trend-stands post. Alternate them week to week on LinkedIn, the "
+           "Givelink email list, and Greek communities — one problem a week covers half "
+           "a year per angle. Edit freely, the facts are the load-bearing part.",
            "",
            OUTREACH,
            "",
            "---",
            "",
-           "## English drafts",
+           "## English drafts — Angle A (myth → what works)",
            ""]
     for p in batch:
         out.append(f"### {p['emoji']} {p['name']}\n")
@@ -127,7 +154,15 @@ def main() -> None:
         out.append("```\n")
 
     out.append("---\n")
-    out.append("## Greek drafts (Ελληνικά)\n")
+    out.append("## English drafts — Angle B (where the trend stands)\n")
+    for p in batch:
+        out.append(f"### {p['emoji']} {p['name']}\n")
+        out.append("```")
+        out.append(en_trend_post(p))
+        out.append("```\n")
+
+    out.append("---\n")
+    out.append("## Greek drafts — Angle A (Ελληνικά, παρανόηση → τι λειτουργεί)\n")
     for p in batch:
         post = el_post(p, over)
         if not post:
@@ -138,8 +173,20 @@ def main() -> None:
         out.append(post)
         out.append("```\n")
 
+    out.append("---\n")
+    out.append("## Greek drafts — Angle B (Ελληνικά, πού βρίσκεται η τάση)\n")
+    for p in batch:
+        post = el_trend_post(p, over)
+        if not post:
+            continue
+        o = over["problems"].get(p["id"], {})
+        out.append(f"### {p['emoji']} {o.get('name', p['name'])}\n")
+        out.append("```")
+        out.append(post)
+        out.append("```\n")
+
     (COMPASS / "content-kit.md").write_text("\n".join(out), encoding="utf-8")
-    print(f"wrote compass/content-kit.md — {len(batch)} problems, EN + EL")
+    print(f"wrote compass/content-kit.md — {len(batch)} problems, 2 angles, EN + EL")
 
 
 if __name__ == "__main__":
