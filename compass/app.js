@@ -230,7 +230,24 @@ function renderHome() {
       <div class="cx-card"><span class="cx-mission-emoji">⚡</span><div class="cx-mission-title">Reduce suffering</div><div class="cx-mission-desc">Only what evidence supports: interventions rated by strength, with honest cost-per-outcome.</div></div>
       <div class="cx-card"><span class="cx-mission-emoji">🫂</span><div class="cx-mission-title">Expand care</div><div class="cx-mission-desc">Turn understanding into action with your money, time, skills, or voice — and make it a habit.</div></div>
     </div>
-    <p style="text-align:center;margin-top:14px;font-size:0.85rem"><a href="#/bestworld" style="color:var(--text-dim)">Where is all this heading? The best world, according to philosophers →</a></p>
+
+    <div class="cx-today">
+      <h2 class="cx-h2">Find your bearings</h2>
+      <a class="cx-card cx-today-card" href="#/priorities" style="margin-bottom:10px">
+        <span class="cx-today-emoji">📊</span>
+        <div>
+          <div class="cx-today-name">Where does humanity stand?</div>
+          <div class="cx-today-stat">All 25 problems ranked by how solved they are — where only will is missing, and where knowledge itself is.</div>
+        </div>
+      </a>
+      <a class="cx-card cx-today-card" href="#/bestworld">
+        <span class="cx-today-emoji">🏛️</span>
+        <div>
+          <div class="cx-today-name">Where are we trying to go?</div>
+          <div class="cx-today-stat">The best world according to eight philosophers — and the problems that block every route to it.</div>
+        </div>
+      </a>
+    </div>
 
     <div class="cx-today">
       <h2 class="cx-h2">Today's problem</h2>
