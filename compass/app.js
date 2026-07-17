@@ -167,6 +167,10 @@ const OFFER_META = {
   skills: { emoji: '🛠️', label: 'Skills' },
   voice:  { emoji: '📣', label: 'Voice' },
 };
+// Curated "do this now" examples (data-actions.js); [] when none curated.
+function cxDonow(id) {
+  return (typeof COMPASS_DONOW !== 'undefined' && COMPASS_DONOW[id]) || [];
+}
 
 /* ── Router ─────────────────────────────────────────── */
 const cxView = () => document.getElementById('view');
@@ -175,7 +179,7 @@ function cxRoute() {
   cxTouchStreak(); // idempotent per day; installed PWAs resume for days without reloading
   const hash = location.hash.replace(/^#\/?/, '');
   const [seg, arg] = hash.split('/');
-  const routes = { '': renderHome, atlas: renderAtlas, problem: renderProblem, plan: renderPlan, journey: renderJourney };
+  const routes = { '': renderHome, atlas: renderAtlas, problem: renderProblem, plan: renderPlan, journey: renderJourney, priorities: renderPriorities, bestworld: renderBestWorld };
   const fn = routes[seg] || renderHome;
   let a;
   try { a = arg ? decodeURIComponent(arg.split('?')[0]) : undefined; } catch { a = undefined; }
@@ -194,7 +198,7 @@ function cxRoute() {
 }
 
 function cxNavActive(seg) {
-  const map = { home: '#/', atlas: '#/atlas', problem: '#/atlas', plan: '#/plan', journey: '#/journey' };
+  const map = { home: '#/', atlas: '#/atlas', problem: '#/atlas', plan: '#/plan', journey: '#/journey', priorities: '#/atlas', bestworld: '#/' };
   document.querySelectorAll('.cx-nav a').forEach(a => {
     const active = a.getAttribute('href') === (map[seg] || '#/');
     a.classList.toggle('active', active);
@@ -216,6 +220,7 @@ function renderHome() {
       <p class="cx-sub">${COMPASS_PROBLEMS.length} of humanity's biggest problems — what they really are, what the evidence says actually works against them, and a concrete path for <em>you</em> to help, whatever you have to offer.</p>
       <div class="cx-hero-ctas">
         <a class="cx-btn" href="#/atlas">🗺️ Explore the Atlas</a>
+        <a class="cx-btn cx-btn-ghost" href="#/priorities">📊 Where do we stand?</a>
         <a class="cx-btn cx-btn-ghost" href="#/plan">Build my action plan</a>
       </div>
     </div>
@@ -225,6 +230,7 @@ function renderHome() {
       <div class="cx-card"><span class="cx-mission-emoji">⚡</span><div class="cx-mission-title">Reduce suffering</div><div class="cx-mission-desc">Only what evidence supports: interventions rated by strength, with honest cost-per-outcome.</div></div>
       <div class="cx-card"><span class="cx-mission-emoji">🫂</span><div class="cx-mission-title">Expand care</div><div class="cx-mission-desc">Turn understanding into action with your money, time, skills, or voice — and make it a habit.</div></div>
     </div>
+    <p style="text-align:center;margin-top:14px;font-size:0.85rem"><a href="#/bestworld" style="color:var(--text-dim)">Where is all this heading? The best world, according to philosophers →</a></p>
 
     <div class="cx-today">
       <h2 class="cx-h2">Today's problem</h2>
@@ -266,7 +272,7 @@ function renderAtlas() {
   cxView().innerHTML = `
     <p class="cx-eyebrow">The Problem Atlas</p>
     <h1 class="cx-h1">${COMPASS_PROBLEMS.length} problems worth understanding</h1>
-    <p class="cx-sub">Each entry is curated from well-established evidence. Figures are approximate by design — honesty over precision.</p>
+    <p class="cx-sub">Each entry is curated from well-established evidence. Figures are approximate by design — honesty over precision. <a href="#/priorities">See them ranked by how solved they are →</a></p>
     <div class="cx-filters" id="cxFilters">
       <button class="cx-chip active" data-cat="all">All</button>
       ${Object.entries(COMPASS_CATEGORIES).map(([k, c]) =>
@@ -301,6 +307,139 @@ function renderAtlas() {
     btn.classList.add('active');
     draw(btn.dataset.cat);
   });
+}
+
+/* Priorities view — David Deutsch's optimism principle as a sorting lens:
+   problems are soluble, and every evil is at bottom a lack of knowledge.
+   So the question per problem is whether the knowledge already exists.
+   Computed from the evidence ratings the Atlas already carries; within
+   each bucket the worsening problems surface first. */
+function renderPriorities() {
+  const buckets = { known: [], partial: [], frontier: [] };
+  COMPASS_PROBLEMS.forEach(p => {
+    const strong = p.interventions.filter(iv => iv.evidence === 'strong').length;
+    buckets[strong >= 2 ? 'known' : strong === 1 ? 'partial' : 'frontier'].push(p);
+  });
+  const trendRank = { worsening: 0, mixed: 1, improving: 2 };
+  Object.values(buckets).forEach(list => list.sort((a, b) => trendRank[a.trend.dir] - trendRank[b.trend.dir]));
+
+  const META = {
+    known: {
+      title: '✅ Solution known — the gap is will, not knowledge',
+      desc: 'Humanity already has proven tools against these. What’s missing is funding and attention, which makes them the fastest wins on Earth.',
+    },
+    partial: {
+      title: '🧩 Partly solved — strong leads, open gaps',
+      desc: 'At least one proven tool exists, but key pieces of the solution are still being worked out.',
+    },
+    frontier: {
+      title: '🔬 Knowledge frontier — solutions still to be created',
+      desc: 'No fully proven playbook yet. Progress here means creating new knowledge: research, experiments, better institutions.',
+    },
+  };
+
+  const section = key => {
+    const list = buckets[key];
+    if (!list.length) return '';
+    return `
+      <div class="cx-section">
+        <div class="cx-section-label">${META[key].title}</div>
+        <p style="color:var(--text-dim);font-size:0.85rem;margin:-4px 0 12px">${META[key].desc}</p>
+        <div class="cx-atlas">
+          ${list.map(p => {
+            const strong = p.interventions.filter(iv => iv.evidence === 'strong').length;
+            const pct = Math.round(strong / p.interventions.length * 100);
+            return `
+            <a class="cx-card cx-problem-card" href="#/problem/${p.id}">
+              <div class="cx-problem-top">
+                <span class="cx-problem-emoji">${p.emoji}</span>
+                <span class="cx-badge cx-badge-${p.trend.dir}">${TREND_LABEL[p.trend.dir]}</span>
+              </div>
+              <div class="cx-problem-name">${esc(p.name)}</div>
+              <div class="cx-problem-stat">${esc(p.stat)}</div>
+              <div class="cx-problem-foot" style="display:block">
+                <div style="display:flex;justify-content:space-between;font-size:0.68rem;color:var(--text-dim);margin-bottom:4px">
+                  <span>Proven tools</span><span>${strong}/${p.interventions.length}</span>
+                </div>
+                <div style="height:5px;border-radius:99px;background:var(--surface-2);overflow:hidden">
+                  <div style="height:100%;width:${pct}%;border-radius:99px;background:var(--gold)"></div>
+                </div>
+                ${cxState.understood[p.id] ? '<span class="cx-problem-done" style="display:inline-block;margin-top:6px">✓ Understood</span>' : ''}
+              </div>
+            </a>`;
+          }).join('')}
+        </div>
+      </div>`;
+  };
+
+  cxView().innerHTML = `
+    <p class="cx-eyebrow">Priorities</p>
+    <h1 class="cx-h1">Where does humanity stand?</h1>
+    <p class="cx-sub">Sorted with David Deutsch’s optimism principle: <em>problems are soluble</em> — anything not forbidden by the laws of nature is achievable, given the right knowledge. Every evil is, at bottom, a lack of knowledge. So the honest question for each problem is: <strong>does the knowledge already exist?</strong> Where it does, only will and money stand between us and the win. Within each group, the worsening problems come first.</p>
+    ${section('known')}
+    ${section('partial')}
+    ${section('frontier')}
+    <div class="cx-detail-ctas" style="margin-top:26px">
+      <a class="cx-btn" href="#/bestworld">🏛️ Where are we trying to go? →</a>
+      <a class="cx-btn cx-btn-ghost" href="#/atlas">Browse by category</a>
+    </div>
+    ${cxFooter()}
+  `;
+}
+
+/* Best World view — utopia as a direction, not a place. Philosophers
+   disagree about the destination; their maps overlap on what blocks the
+   road. That overlap is the Atlas. */
+const CX_VISIONS = [
+  { emoji: '🏛️', who: 'Aristotle', name: 'Eudaimonia',
+    vision: 'A world where every person can flourish — not merely survive, but live out their capacities in full: reason, friendship, excellence.',
+    blocks: ['education', 'extreme-poverty', 'loneliness'] },
+  { emoji: '📈', who: 'Bentham & Mill', name: 'The greatest happiness',
+    vision: 'Suffering reduced wherever it exists. And Bentham’s test was never "can they reason?" but "can they suffer?" — the circle includes animals.',
+    blocks: ['malaria', 'child-mortality', 'factory-farming'] },
+  { emoji: '⚖️', who: 'Immanuel Kant', name: 'The kingdom of ends',
+    vision: 'Every human treated always as an end in themselves, never merely as a means — no one’s dignity traded away.',
+    blocks: ['gender-inequality', 'refugees', 'corruption'] },
+  { emoji: '🎭', who: 'John Rawls', name: 'Justice as fairness',
+    vision: 'The world you would design if you didn’t know who you’d be born as. Behind that veil, you’d fix the worst-off positions first.',
+    blocks: ['extreme-poverty', 'maternal-mortality', 'unsafe-water'] },
+  { emoji: '🌱', who: 'Sen & Nussbaum', name: 'Capabilities',
+    vision: 'Freedom measured by what people can actually do and be: learn, move, see, participate, choose their own life.',
+    blocks: ['education', 'preventable-blindness', 'digital-exclusion'] },
+  { emoji: '🔓', who: 'Karl Popper', name: 'The open society',
+    vision: 'Institutions you can criticize and correct without violence — a civilization whose error-correction never stops.',
+    blocks: ['corruption', 'digital-exclusion', 'refugees'] },
+  { emoji: '♾️', who: 'David Deutsch', name: 'The beginning of infinity',
+    vision: 'A civilization that treats every problem as soluble and never stops creating the knowledge to solve the next one — including the risks that could end the whole project.',
+    blocks: ['pandemic-preparedness', 'education', 'tuberculosis'] },
+  { emoji: '🫱', who: 'Peter Singer', name: 'The expanding circle',
+    vision: 'Moral concern that refuses to stop at borders, or at our own species — distance is not a reason to let a child drown.',
+    blocks: ['extreme-poverty', 'neglected-tropical-diseases', 'factory-farming'] },
+];
+
+function renderBestWorld() {
+  cxView().innerHTML = `
+    <p class="cx-eyebrow">The destination</p>
+    <h1 class="cx-h1">The best world, according to philosophers</h1>
+    <p class="cx-sub">Utopia is not a place — it’s a direction. Philosophers have disagreed about the destination for 2,400 years, but lay their maps on top of each other and the same obstacles appear on nearly every route. Those obstacles are this Atlas. Solving them isn’t one worldview’s agenda; it’s the shared road.</p>
+    ${CX_VISIONS.map(v => `
+      <div class="cx-card" style="margin-top:14px">
+        <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+          <span style="font-size:1.3rem">${v.emoji}</span>
+          <span style="font-weight:800">${v.name}</span>
+          <span style="color:var(--text-dim);font-size:0.8rem">${v.who}</span>
+        </div>
+        <p style="color:var(--text-dim);font-size:0.88rem;margin:8px 0 10px">${v.vision}</p>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${v.blocks.map(id => { const p = compassProblem(id); return p ? `<a class="cx-chip" style="text-decoration:none" href="#/problem/${p.id}">${p.emoji} ${esc(p.name)}</a>` : ''; }).join('')}
+        </div>
+      </div>`).join('')}
+    <div class="cx-detail-ctas" style="margin-top:26px">
+      <a class="cx-btn" href="#/priorities">📊 Where do we stand today? →</a>
+      <a class="cx-btn cx-btn-ghost" href="#/atlas">Explore all 25 problems</a>
+    </div>
+    ${cxFooter()}
+  `;
 }
 
 function renderProblem(id) {
@@ -362,6 +501,12 @@ function renderProblem(id) {
     <div class="cx-section">
       <div class="cx-section-label">🧭 Act</div>
       <div class="cx-card">
+        ${cxDonow(p.id).length ? `
+        <div class="cx-act-group" id="cxDonow">
+          <div class="cx-act-title">🎯 Do this now</div>
+          ${cxDonow(p.id).map(d => `<div class="cx-act-item">→ <a href="${d.url}" target="_blank" rel="noopener" data-donow="${esc(d.org)}"><strong>${esc(d.org)}</strong></a> — ${esc(d.what)} <span class="cx-badge cx-badge-${d.evidence}">${EVIDENCE_LABEL[d.evidence]}</span></div>`).join('')}
+          <div style="color:var(--text-dim);font-size:0.7rem;margin-top:6px">Examples chosen for evidence and transparency — not the only good options. No affiliation, no payment.</div>
+        </div>` : ''}
         ${Object.entries(p.actions).map(([k, items]) => items.length ? `
           <div class="cx-act-group">
             <div class="cx-act-title">${OFFER_META[k].emoji} With your ${OFFER_META[k].label.toLowerCase()}</div>
@@ -484,6 +629,13 @@ function renderProblem(id) {
     if (a) cxTrack('share_click', { problem: p.id, where: 'problem', network: a.dataset.net });
   });
 
+  // The deepest point of the funnel: a click through to a real organization.
+  const donowEl = document.getElementById('cxDonow');
+  if (donowEl) donowEl.addEventListener('click', e => {
+    const a = e.target.closest('a[data-donow]');
+    if (a) cxTrack('outbound_donow_click', { problem: p.id, org: a.dataset.donow });
+  });
+
   initProblemChat(p);
 }
 
@@ -505,7 +657,7 @@ Causes: ${p.understand.causes}
 Who suffers: ${p.understand.sufferers}
 What works: ${p.interventions.map(iv => `${iv.name} (${iv.evidence}): ${iv.cost}`).join(' | ')}
 
-Rules: be warm, clear, honest and non-preachy. Use approximate, well-established figures ("roughly", "on the order of") and never invent precise statistics. Be candid about uncertainty and expert disagreement. Never name specific real charities — describe org types. No guilt-tripping, no doom; agency and honesty. Keep answers under 250 words unless asked to go deeper. If asked something unrelated to ${p.name}, briefly answer if it serves understanding of world problems, otherwise gently steer back.`;
+Rules: be warm, clear, honest and non-preachy. Use approximate, well-established figures ("roughly", "on the order of") and never invent precise statistics. Be candid about uncertainty and expert disagreement. ${cxDonow(p.id).length ? `You may name these vetted example organizations where genuinely relevant: ${cxDonow(p.id).map(d => d.org).join(', ')}. Beyond those, describe org types rather than naming other specific charities.` : 'Never name specific real charities — describe org types.'} No guilt-tripping, no doom; agency and honesty. Keep answers under 250 words unless asked to go deeper. If asked something unrelated to ${p.name}, briefly answer if it serves understanding of world problems, otherwise gently steer back.`;
 
   async function ask(q) {
     if (!q) return;
@@ -616,7 +768,7 @@ function renderPlan(preselect) {
 Return ONLY a numbered list of 5 to 8 steps, one per line, formatted exactly like:
 1. [step]
 2. [step]
-No intro, no outro, no headings. Each step must be concrete and checkable (a real action, not a vague intention). Step 1 must be doable today in under 15 minutes. Scale ambition to the user's weekly time. Match steps to what they offered (money/time/skills/voice); if they offered nothing, cover gentle first steps across all four. Where natural, reference by name the free tools "What Would $X Do?", Charity Comparison Engine, Volunteer Match, "What Can I Donate?", or the Givelink platform for in-kind giving. Never name specific real charities — describe org types. Warm, practical, zero guilt.
+No intro, no outro, no headings. Each step must be concrete and checkable (a real action, not a vague intention). Step 1 must be doable today in under 15 minutes. Scale ambition to the user's weekly time. Match steps to what they offered (money/time/skills/voice); if they offered nothing, cover gentle first steps across all four. Where natural, reference by name the free tools "What Would $X Do?", Charity Comparison Engine, Volunteer Match, "What Can I Donate?", or the Givelink platform for in-kind giving. ${cxDonow(problemId).length ? `You may name these vetted example organizations: ${cxDonow(problemId).map(d => d.org).join(', ')}. Beyond those, describe org types rather than naming other specific charities.` : 'Never name specific real charities — describe org types.'} Warm, practical, zero guilt.
 
 The problem: ${p.name}. ${p.understand.scale}
 What works: ${p.interventions.map(iv => `${iv.name} (${iv.evidence} evidence)`).join(', ')}.`;

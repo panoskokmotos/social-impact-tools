@@ -28,18 +28,19 @@ SITE = "https://tools.panoskokmotos.com"
 TODAY = date.today().isoformat()
 
 
-def load() -> tuple[list[dict], dict, dict]:
+def load() -> tuple[list[dict], dict, dict, dict]:
     dump = subprocess.run(
         ["node", "-e",
          "const fs=require('fs');"
          "const a=fs.readFileSync(process.argv[1],'utf8');"
          "const b=fs.readFileSync(process.argv[2],'utf8');"
-         "const r=new Function(a+';'+b+'; return {COMPASS_PROBLEMS, COMPASS_CATEGORIES, COMPASS_EL};')();"
+         "const c=fs.readFileSync(process.argv[3],'utf8');"
+         "const r=new Function(a+';'+b+';'+c+'; return {COMPASS_PROBLEMS, COMPASS_CATEGORIES, COMPASS_EL, COMPASS_DONOW};')();"
          "console.log(JSON.stringify(r));",
-         str(COMPASS / "data.js"), str(COMPASS / "data.el.js")],
+         str(COMPASS / "data.js"), str(COMPASS / "data.el.js"), str(COMPASS / "data-actions.js")],
         capture_output=True, text=True, check=True)
     d = json.loads(dump.stdout)
-    return d["COMPASS_PROBLEMS"], d["COMPASS_CATEGORIES"], d["COMPASS_EL"]
+    return d["COMPASS_PROBLEMS"], d["COMPASS_CATEGORIES"], d["COMPASS_EL"], d["COMPASS_DONOW"]
 
 
 def esc(s: str) -> str:
@@ -81,12 +82,23 @@ def faq_el(e: dict) -> list[tuple[str, str]]:
     a2 = "Οι προσεγγίσεις με τα ισχυρότερα στοιχεία: " + " ".join(
         f"{iv['name']}: {_sentence(iv['what'])} {_sentence(iv['cost'])}" for iv, _ in top)
 
-    a3 = (
-        f"Η Πυξίδα Αντικτύπου δεν προτείνει συγκεκριμένες οργανώσεις. Ο πιο ουσιαστικός δρόμος είναι να στηρίξεις "
-        f"τις παρεμβάσεις που λειτουργούν καλύτερα εδώ ({top_names}) και να επιλέξεις οργανισμούς με βάση τη "
-        f"διαφάνεια με την οποία τις υλοποιούν. Σύγκρινε τύπους οργανισμών για αυτόν τον σκοπό με τα δωρεάν "
-        f"εργαλεία παραπάνω, ή δώσε χρήσιμα αντικείμενα απευθείας μέσω Givelink."
-    )
+    dn = e.get("donow") or []
+    if dn:
+        orgs = ", ".join(x["org"] for x in dn)
+        a3 = (
+            f"Τεκμηριωμένα παραδείγματα για αυτό το πρόβλημα: {orgs} — επιλεγμένα για τεκμηρίωση και διαφάνεια, "
+            f"όχι οι μόνες καλές επιλογές. Ο πιο ουσιαστικός δρόμος είναι να στηρίξεις τις παρεμβάσεις που "
+            f"λειτουργούν καλύτερα εδώ ({top_names}) και να επιλέξεις οργανισμούς με βάση τη διαφάνεια με την "
+            f"οποία τις υλοποιούν. Μπορείς επίσης να συγκρίνεις τύπους οργανισμών με τα δωρεάν εργαλεία παραπάνω, "
+            f"ή να δώσεις χρήσιμα αντικείμενα απευθείας μέσω Givelink."
+        )
+    else:
+        a3 = (
+            f"Η Πυξίδα Αντικτύπου δεν κατατάσσει συγκεκριμένες οργανώσεις για αυτό το πρόβλημα. Ο πιο ουσιαστικός "
+            f"δρόμος είναι να στηρίξεις τις παρεμβάσεις που λειτουργούν καλύτερα εδώ ({top_names}) και να επιλέξεις "
+            f"οργανισμούς με βάση τη διαφάνεια με την οποία τις υλοποιούν. Σύγκρινε τύπους οργανισμών για αυτόν τον "
+            f"σκοπό με τα δωρεάν εργαλεία παραπάνω, ή δώσε χρήσιμα αντικείμενα απευθείας μέσω Givelink."
+        )
 
     return [
         (f"Πώς μπορώ να βοηθήσω με το πρόβλημα «{name}»;", a1),
@@ -101,7 +113,7 @@ def analytics() -> str:
     return m.group(1) if m else ""
 
 
-def el(p: dict, over: dict) -> dict:
+def el(p: dict, over: dict, donow: dict) -> dict:
     """Merge Greek overrides onto a problem."""
     o = over["problems"].get(p["id"], {})
     deep = over.get("deep", {}).get(p["id"])
@@ -115,6 +127,7 @@ def el(p: dict, over: dict) -> dict:
         "en_name": p["name"],
         "deep": deep,                    # full Greek article, or None
         "en": p,                         # English source for evidence labels
+        "donow": donow.get(p["id"], []),  # curated example orgs (what_el for Greek)
     }
 
 
@@ -153,10 +166,23 @@ def deep_sections(e: dict) -> str:
             <div class="cx-act-title">{OFFER_EL[k][0]} Με τη/τον {OFFER_EL[k][1]} σου</div>
             {''.join(f'<div class="cx-act-item">{esc(a)}</div>' for a in items)}
           </div>""" for k, items in d["actions"].items() if items)
+    dn = e.get("donow") or []
+    donow_html = ""
+    if dn:
+        items = "".join(
+            f'<div class="cx-act-item">→ <a href="{x["url"]}" target="_blank" rel="noopener"><strong>{esc(x["org"])}</strong></a> — '
+            f'{esc(x.get("what_el", x["what"]))} <span class="cx-badge cx-badge-{x["evidence"]}">{EVIDENCE_EL[x["evidence"]]}</span></div>'
+            for x in dn)
+        donow_html = f"""
+          <div class="cx-act-group">
+            <div class="cx-act-title">🎯 Κάνε το τώρα</div>
+            {items}
+            <div style="color:var(--text-dim);font-size:0.7rem;margin-top:6px">Παραδείγματα επιλεγμένα για τεκμηρίωση και διαφάνεια — όχι οι μόνες καλές επιλογές. Καμία σχέση, καμία αμοιβή.</div>
+          </div>"""
     return understand + works + f"""
     <div class="cx-section">
       <div class="cx-section-label">🧭 Δράσε</div>
-      <div class="cx-card">{groups}</div>
+      <div class="cx-card">{donow_html}{groups}</div>
     </div>"""
 
 
@@ -394,10 +420,10 @@ def update_sitemap(items: list[dict]) -> None:
 
 
 def main() -> None:
-    problems, cats, over = load()
+    problems, cats, over, donow = load()
     a = analytics()
     OUT.mkdir(exist_ok=True)
-    es = [el(p, over) for p in problems]
+    es = [el(p, over, donow) for p in problems]
     for i, e in enumerate(es):
         (OUT / f"{e['id']}.html").write_text(problem_page(e, cats, over, es[i - 1], es[(i + 1) % len(es)], a))
     (OUT / "index.html").write_text(hub_page(es, cats, over, a))

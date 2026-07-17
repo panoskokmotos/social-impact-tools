@@ -33,16 +33,18 @@ EVIDENCE_LABEL = {"strong": "Strong evidence", "promising": "Promising", "debate
 OFFER_META = {"money": ("💶", "money"), "time": ("⏰", "time"), "skills": ("🛠️", "skills"), "voice": ("📣", "voice")}
 
 
-def load_problems() -> tuple[list[dict], dict]:
+def load_problems() -> tuple[list[dict], dict, dict]:
     dump = subprocess.run(
         ["node", "-e",
-         "const s=require('fs').readFileSync(process.argv[1],'utf8');"
-         "const r=new Function(s+'; return {COMPASS_PROBLEMS, COMPASS_CATEGORIES};')();"
+         "const fs=require('fs');"
+         "const a=fs.readFileSync(process.argv[1],'utf8');"
+         "const b=fs.readFileSync(process.argv[2],'utf8');"
+         "const r=new Function(a+';'+b+'; return {COMPASS_PROBLEMS, COMPASS_CATEGORIES, COMPASS_DONOW};')();"
          "console.log(JSON.stringify(r));",
-         str(COMPASS / "data.js")],
+         str(COMPASS / "data.js"), str(COMPASS / "data-actions.js")],
         capture_output=True, text=True, check=True)
     data = json.loads(dump.stdout)
-    return data["COMPASS_PROBLEMS"], data["COMPASS_CATEGORIES"]
+    return data["COMPASS_PROBLEMS"], data["COMPASS_CATEGORIES"], data["COMPASS_DONOW"]
 
 
 def esc(s: str) -> str:
@@ -60,7 +62,7 @@ def _lc_first(s: str) -> str:
     return s[0].lower() + s[1:] if s else s
 
 
-def faq(p: dict) -> list[tuple[str, str]]:
+def faq(p: dict, donow: list[dict]) -> list[tuple[str, str]]:
     """Build 3 grounded Q&A from the curated on-page data, aimed at the
     high-intent questions people actually search: how to help, what works
     best, where to give. No new facts — just reframing what's already here."""
@@ -80,12 +82,22 @@ def faq(p: dict) -> list[tuple[str, str]]:
     a2 = "The approaches with the strongest evidence: " + " ".join(
         f"{iv['name']}: {_sentence(iv['what'])} {_sentence(iv['cost'])}" for iv in top)
 
-    a3 = (
-        f"Impact Compass doesn't name individual charities. The higher-leverage path is to back the "
-        f"interventions that work best here ({top_names}) and to choose organizations by how transparently "
-        f"they deliver them. Compare organization types for this cause with the free tools linked above, or "
-        f"give useful items directly through Givelink."
-    )
+    if donow:
+        orgs = ", ".join(d["org"] for d in donow)
+        a3 = (
+            f"Vetted examples for {name.lower()}: {orgs} — chosen for evidence and transparency, and not "
+            f"the only good options. The higher-leverage path is to back the interventions that work best "
+            f"here ({top_names}) and to choose organizations by how transparently they deliver them. You can "
+            f"also compare organization types with the free tools linked above, or give useful items directly "
+            f"through Givelink."
+        )
+    else:
+        a3 = (
+            f"Impact Compass doesn't rank individual charities for this problem. The higher-leverage path is "
+            f"to back the interventions that work best here ({top_names}) and to choose organizations by how "
+            f"transparently they deliver them. Compare organization types for this cause with the free tools "
+            f"linked above, or give useful items directly through Givelink."
+        )
 
     return [
         (f"How can I help with {name.lower()}?", a1),
@@ -140,7 +152,23 @@ CAPTURE_SCRIPT = """  <script src="../notify.js"></script>
 """
 
 
-def page(p: dict, cats: dict, prev_p: dict, next_p: dict, analytics_html: str) -> str:
+def donow_block(dn: list[dict], title: str, disclaimer: str, what_key: str = "what") -> str:
+    """Render the curated 'Do this now' examples; empty string when none."""
+    if not dn:
+        return ""
+    items = "".join(
+        f'<div class="cx-act-item">→ <a href="{d["url"]}" target="_blank" rel="noopener"><strong>{esc(d["org"])}</strong></a> — '
+        f'{esc(d[what_key])} <span class="cx-badge cx-badge-{d["evidence"]}">{EVIDENCE_LABEL[d["evidence"]]}</span></div>'
+        for d in dn)
+    return f"""
+          <div class="cx-act-group">
+            <div class="cx-act-title">{title}</div>
+            {items}
+            <div style="color:var(--text-dim);font-size:0.7rem;margin-top:6px">{disclaimer}</div>
+          </div>"""
+
+
+def page(p: dict, cats: dict, prev_p: dict, next_p: dict, analytics_html: str, dn: list[dict]) -> str:
     cat = cats[p["category"]]
     url = f"{SITE}/compass/p/{p['id']}.html"
     title = f"How to Help With {p['name']}: What Works and Where to Give"
@@ -164,7 +192,11 @@ def page(p: dict, cats: dict, prev_p: dict, next_p: dict, analytics_html: str) -
       </div>
     </div>"""
 
-    qa = faq(p)
+    donow_html = donow_block(
+        dn, "🎯 Do this now",
+        "Examples chosen for evidence and transparency — not the only good options. No affiliation, no payment.")
+
+    qa = faq(p, dn)
     faq_html = "\n".join(
         f'        <div class="cx-fact"><div class="cx-fact-k">{esc(q)}</div><div class="cx-fact-v">{esc(a)}</div></div>'
         for q, a in qa)
@@ -283,6 +315,7 @@ def page(p: dict, cats: dict, prev_p: dict, next_p: dict, analytics_html: str) -
     <div class="cx-section">
       <div class="cx-section-label">🧭 Act</div>
       <div class="cx-card">
+        {donow_html}
         {act_groups}
         <div style="color:var(--text-dim);font-size:0.78rem;margin-top:6px">
           Act now: <a href="{SITE}/charity-comparison-engine.html?cause={cause_q}" target="_blank" rel="noopener">compare org types for this cause</a> ·
@@ -392,13 +425,13 @@ def update_sitemap(problems: list[dict]) -> None:
 
 
 def main() -> None:
-    problems, cats = load_problems()
+    problems, cats, donow = load_problems()
     a = analytics()
     OUT.mkdir(exist_ok=True)
     for i, p in enumerate(problems):
         prev_p = problems[i - 1]
         next_p = problems[(i + 1) % len(problems)]
-        (OUT / f"{p['id']}.html").write_text(page(p, cats, prev_p, next_p, a))
+        (OUT / f"{p['id']}.html").write_text(page(p, cats, prev_p, next_p, a, donow.get(p["id"], [])))
     (OUT / "index.html").write_text(index_page(problems, cats, a))
     update_sitemap(problems)
     print(f"generated {len(problems)} problem pages + index, sitemap updated")
