@@ -409,11 +409,167 @@ def index_page(problems: list[dict], cats: dict, analytics_html: str) -> str:
 """
 
 
+def _page_shell(title: str, desc: str, canonical: str, body: str, analytics_html: str) -> str:
+    """Compact shell for the standalone compass pages (priorities, best world)."""
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
+  {analytics_html}
+  <title>{esc(title)}</title>
+  <meta name="description" content="{esc(desc)}" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./app.css" />
+  <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+  <meta name="theme-color" content="#0a0f1e" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <link rel="canonical" href="{canonical}" />
+  <meta property="og:title" content="{esc(title)}" />
+  <meta property="og:description" content="{esc(desc)}" />
+  <meta property="og:url" content="{canonical}" />
+  <meta property="og:image" content="{SITE}/og-ai-tools.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+</head>
+<body>
+  <header class="cx-topbar">
+    <a class="cx-brand" href="./">
+      <img src="./icon.svg" alt="" width="30" height="30" />
+      <span>Impact Compass<span class="cx-brand-sub">Understand · Reduce suffering · Care</span></span>
+    </a>
+    <nav class="cx-nav" aria-label="Site navigation">
+      <a href="./"><span class="cx-nav-emoji">🧭</span>App</a>
+      <a href="./p/"><span class="cx-nav-emoji">🗺️</span>All problems</a>
+      <a href="./el/" class="cx-lang"><span class="cx-nav-emoji">🌐</span>ΕΛ</a>
+    </nav>
+  </header>
+  <main class="cx-main">
+{body}
+    <div class="cx-footer">Impact Compass · built by <a href="https://panoskokmotos.com">Panos Kokmotos</a> · part of the <a href="{SITE}/">AI for Social Impact tools</a> and a sibling of <a href="https://givelink.app/en">Givelink</a> · powered by Claude AI</div>
+  </main>
+</body>
+</html>
+"""
+
+
+def _rank_card(p: dict, strong: int, total: int) -> str:
+    pct = round(strong / total * 100)
+    return (
+        f'<a class="cx-card cx-problem-card" style="text-decoration:none;color:inherit" href="p/{p["id"]}.html">'
+        f'<div class="cx-problem-top"><span class="cx-problem-emoji">{p["emoji"]}</span>'
+        f'<span class="cx-badge cx-badge-{p["trend"]["dir"]}">{TREND_LABEL[p["trend"]["dir"]]}</span></div>'
+        f'<div class="cx-problem-name">{esc(p["name"])}</div>'
+        f'<div class="cx-problem-stat">{esc(p["stat"])}</div>'
+        f'<div style="display:flex;justify-content:space-between;font-size:0.68rem;color:var(--text-dim);margin:8px 0 4px"><span>Proven tools</span><span>{strong}/{total}</span></div>'
+        f'<div style="height:5px;border-radius:99px;background:var(--surface-2);overflow:hidden"><div style="height:100%;width:{pct}%;background:var(--gold)"></div></div>'
+        f'</a>')
+
+
+def priorities_page(problems: list[dict], analytics_html: str) -> str:
+    """Static, indexable version of the app's Priorities view."""
+    buckets: dict[str, list] = {"known": [], "partial": [], "frontier": []}
+    for p in problems:
+        strong = sum(1 for iv in p["interventions"] if iv["evidence"] == "strong")
+        key = "known" if strong >= 2 else "partial" if strong == 1 else "frontier"
+        buckets[key].append((p, strong))
+    trend_rank = {"worsening": 0, "mixed": 1, "improving": 2}
+    for lst in buckets.values():
+        lst.sort(key=lambda t: trend_rank[t[0]["trend"]["dir"]])
+    META = {
+        "known": ("✅ Solution known — the gap is will, not knowledge",
+                  "Humanity already has proven tools against these. What's missing is funding and attention, which makes them the fastest wins on Earth."),
+        "partial": ("🧩 Partly solved — strong leads, open gaps",
+                    "At least one proven tool exists, but key pieces of the solution are still being worked out."),
+        "frontier": ("🔬 Knowledge frontier — solutions still to be created",
+                     "No fully proven playbook yet. Progress here means creating new knowledge: research, experiments, better institutions."),
+    }
+    sections = "".join(f"""
+    <div class="cx-section">
+      <div class="cx-section-label">{META[k][0]}</div>
+      <p style="color:var(--text-dim);font-size:0.85rem;margin:-4px 0 12px">{META[k][1]}</p>
+      <div class="cx-atlas">{''.join(_rank_card(p, s, len(p['interventions'])) for p, s in buckets[k])}</div>
+    </div>""" for k in ("known", "partial", "frontier"))
+    body = f"""
+    <p class="cx-eyebrow">Priorities</p>
+    <h1 class="cx-h1">The world's biggest problems, ranked by how solvable they are</h1>
+    <p class="cx-sub">Sorted with David Deutsch's optimism principle: <em>problems are soluble</em> — anything not forbidden by the laws of nature is achievable, given the right knowledge. So the honest question for each problem is whether the knowledge already exists. Where it does, only will and money stand between us and the win. Within each group, the worsening problems come first.</p>
+    {sections}
+    <div class="cx-detail-ctas" style="margin-top:26px">
+      <a class="cx-btn" href="best-world.html">🏛️ Where are we trying to go? →</a>
+      <a class="cx-btn cx-btn-ghost" href="./#/priorities">Open this in the app</a>
+    </div>"""
+    return _page_shell(
+        "The World's Biggest Problems, Ranked by How Solvable They Are",
+        "25 major world problems sorted by whether humanity already knows how to solve them — proven tools, partial solutions, and the knowledge frontier. Based on evidence-rated interventions.",
+        f"{SITE}/compass/priorities.html", body, analytics_html)
+
+
+VISIONS = [
+    ("🏛️", "Aristotle", "Eudaimonia",
+     "A world where every person can flourish — not merely survive, but live out their capacities in full: reason, friendship, excellence.",
+     ["education", "extreme-poverty", "loneliness"]),
+    ("📈", "Bentham & Mill", "The greatest happiness",
+     "Suffering reduced wherever it exists. And Bentham's test was never \"can they reason?\" but \"can they suffer?\" — the circle includes animals.",
+     ["malaria", "child-mortality", "factory-farming"]),
+    ("⚖️", "Immanuel Kant", "The kingdom of ends",
+     "Every human treated always as an end in themselves, never merely as a means — no one's dignity traded away.",
+     ["gender-inequality", "refugees", "corruption"]),
+    ("🎭", "John Rawls", "Justice as fairness",
+     "The world you would design if you didn't know who you'd be born as. Behind that veil, you'd fix the worst-off positions first.",
+     ["extreme-poverty", "maternal-mortality", "unsafe-water"]),
+    ("🌱", "Sen & Nussbaum", "Capabilities",
+     "Freedom measured by what people can actually do and be: learn, move, see, participate, choose their own life.",
+     ["education", "preventable-blindness", "digital-exclusion"]),
+    ("🔓", "Karl Popper", "The open society",
+     "Institutions you can criticize and correct without violence — a civilization whose error-correction never stops.",
+     ["corruption", "digital-exclusion", "refugees"]),
+    ("♾️", "David Deutsch", "The beginning of infinity",
+     "A civilization that treats every problem as soluble and never stops creating the knowledge to solve the next one — including the risks that could end the whole project.",
+     ["pandemic-preparedness", "education", "tuberculosis"]),
+    ("🫱", "Peter Singer", "The expanding circle",
+     "Moral concern that refuses to stop at borders, or at our own species — distance is not a reason to let a child drown.",
+     ["extreme-poverty", "neglected-tropical-diseases", "factory-farming"]),
+]
+
+
+def bestworld_page(problems: list[dict], analytics_html: str) -> str:
+    """Static, indexable version of the app's Best World view."""
+    by_id = {p["id"]: p for p in problems}
+    cards = "".join(f"""
+    <div class="cx-card" style="margin-top:14px">
+      <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+        <span style="font-size:1.3rem">{emoji}</span>
+        <span style="font-weight:800">{esc(name)}</span>
+        <span style="color:var(--text-dim);font-size:0.8rem">{esc(who)}</span>
+      </div>
+      <p style="color:var(--text-dim);font-size:0.88rem;margin:8px 0 10px">{esc(vision)}</p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        {''.join(f'<a class="cx-chip" style="text-decoration:none" href="p/{bid}.html">{by_id[bid]["emoji"]} {esc(by_id[bid]["name"])}</a>' for bid in blocks if bid in by_id)}
+      </div>
+    </div>""" for emoji, who, name, vision, blocks in VISIONS)
+    body = f"""
+    <p class="cx-eyebrow">The destination</p>
+    <h1 class="cx-h1">The best world, according to philosophers</h1>
+    <p class="cx-sub">Utopia is not a place — it's a direction. Philosophers have disagreed about the destination for 2,400 years, but lay their maps on top of each other and the same obstacles appear on nearly every route. Those obstacles are the Problem Atlas. Solving them isn't one worldview's agenda; it's the shared road.</p>
+    {cards}
+    <div class="cx-detail-ctas" style="margin-top:26px">
+      <a class="cx-btn" href="priorities.html">📊 Where do we stand today? →</a>
+      <a class="cx-btn cx-btn-ghost" href="p/">Explore all 25 problems</a>
+    </div>"""
+    return _page_shell(
+        "The Best World, According to Philosophers — and What Blocks the Road",
+        "Eight philosophical visions of the best possible world, from Aristotle's flourishing to Deutsch's beginning of infinity — and the world problems that block every route to them.",
+        f"{SITE}/compass/best-world.html", body, analytics_html)
+
+
 def update_sitemap(problems: list[dict]) -> None:
     sm = ROOT / "sitemap.xml"
     text = sm.read_text()
     block = "\n".join(
-        [f"  <url><loc>{SITE}/compass/p/</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>"] +
+        [f"  <url><loc>{SITE}/compass/p/</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>",
+         f"  <url><loc>{SITE}/compass/priorities.html</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>",
+         f"  <url><loc>{SITE}/compass/best-world.html</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>"] +
         [f"  <url><loc>{SITE}/compass/p/{p['id']}.html</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>"
          for p in problems])
     wrapped = f"  <!-- compass-pages:start (generated by compass/build-pages.py) -->\n{block}\n  <!-- compass-pages:end -->"
@@ -433,8 +589,10 @@ def main() -> None:
         next_p = problems[(i + 1) % len(problems)]
         (OUT / f"{p['id']}.html").write_text(page(p, cats, prev_p, next_p, a, donow.get(p["id"], [])))
     (OUT / "index.html").write_text(index_page(problems, cats, a))
+    (COMPASS / "priorities.html").write_text(priorities_page(problems, a))
+    (COMPASS / "best-world.html").write_text(bestworld_page(problems, a))
     update_sitemap(problems)
-    print(f"generated {len(problems)} problem pages + index, sitemap updated")
+    print(f"generated {len(problems)} problem pages + index + priorities + best-world, sitemap updated")
 
 
 if __name__ == "__main__":

@@ -812,13 +812,40 @@ Time per week: about ${minutes} minutes`;
       drawPlans();
       document.getElementById('cxPlans').scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (err) {
-      errBox.textContent = cxAIErrorMsg(err);
+      // Never dead-end the act path: fall back to an Atlas-built starter plan.
+      const steps = cxFallbackPlan(p, offers, +minutes);
+      cxState.plans.unshift({
+        id: 'plan_' + Date.now(),
+        problemId, offers, minutes,
+        createdAt: Date.now(),
+        steps, fallback: true,
+      });
+      cxSave();
+      cxTrack('plan_generated', { problem: problemId, offers: offers.join(',') || 'none', minutes, steps: steps.length, fallback: true });
+      drawPlans();
+      errBox.textContent = 'The AI is unreachable right now, so this starter plan was built from the Atlas evidence instead. Regenerate later for a personalized one.';
       errBox.classList.add('visible');
+      document.getElementById('cxPlans').scrollIntoView({ behavior: 'smooth', block: 'start' });
     } finally {
       btn.disabled = false;
       loading.classList.remove('visible');
     }
   });
+}
+
+/* Evidence-based starter plan, no AI required. Built from the problem's
+   curated actions and vetted orgs so the act path works even when the
+   worker is down — a reader should never hit a dead end. */
+function cxFallbackPlan(p, offers, minutes) {
+  const steps = [];
+  steps.push(`Spend 15 minutes with the ${p.name} page: read the Understand section and mark it understood.`);
+  const wants = offers.length ? offers : ['money', 'time', 'skills', 'voice'];
+  const perOffer = minutes >= 180 ? 2 : 1;
+  wants.forEach(k => (p.actions[k] || []).slice(0, perOffer).forEach(a => steps.push(a)));
+  const dn = cxDonow(p.id);
+  if (dn.length) steps.push(`Visit ${dn[0].org} (${dn[0].url.replace('https://', '').replace('www.', '')}) and decide whether their work deserves your support.`);
+  steps.push(`Tell one person what you learned about ${p.name} this week.`);
+  return steps.slice(0, 8).map(text => ({ text, done: false }));
 }
 
 function drawPlans() {
@@ -854,7 +881,7 @@ function drawPlans() {
         <div class="cx-plan-head">
           <span style="font-size:1.4rem">${p ? p.emoji : '🧭'}</span>
           <div class="cx-plan-title">${p ? esc(p.name) : 'Plan'}
-            <div class="cx-plan-meta">${doneCount}/${plan.steps.length} done · ${new Date(plan.createdAt).toLocaleDateString()}</div>
+            <div class="cx-plan-meta">${doneCount}/${plan.steps.length} done · ${new Date(plan.createdAt).toLocaleDateString()}${plan.fallback ? ' · ⚡ starter plan' : ''}</div>
           </div>
           <button class="cx-plan-del" data-del="${plan.id}">Remove</button>
         </div>
