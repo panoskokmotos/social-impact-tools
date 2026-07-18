@@ -230,6 +230,11 @@ button { font-family: inherit; }
 .cx-sort-select select:focus { outline: none; }
 .cx-sort-select::after { content: '▾'; color: var(--text-dim); margin-left: -16px; pointer-events: none; }
 .cx-proven-count { color: var(--text-dim); font-size: 0.72rem; font-weight: 800; }
+.cx-vision-world { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin: 10px 0 4px; }
+.cx-itn { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 99px; font-size: 0.66rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; background: var(--surface-2); border: 1px solid var(--border); color: var(--text-dim); }
+.cx-itn b { font-weight: 900; color: var(--text); }
+.cx-itn.hi b { color: var(--green); }
+.cx-itn.lo b { color: var(--text-dim); }
 
 /* ── Problem detail ─────────────────────────────────── */
 .cx-back { display: inline-flex; align-items: center; gap: 6px; color: var(--text-dim); font-size: 0.84rem; font-weight: 700; margin-bottom: 18px; }

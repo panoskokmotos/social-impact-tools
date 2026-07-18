@@ -179,7 +179,7 @@ function cxRoute() {
   cxTouchStreak(); // idempotent per day; installed PWAs resume for days without reloading
   const hash = location.hash.replace(/^#\/?/, '');
   const [seg, arg] = hash.split('/');
-  const routes = { '': renderHome, atlas: renderAtlas, problem: renderProblem, plan: renderPlan, journey: renderJourney, priorities: renderPriorities, bestworld: renderBestWorld, agi: renderAgi };
+  const routes = { '': renderHome, atlas: renderAtlas, problem: renderProblem, plan: renderPlan, journey: renderJourney, priorities: renderPriorities, bestworld: renderBestWorld, agi: renderAgi, watchlist: renderWatchlist, ea: renderEA };
   const fn = routes[seg] || renderHome;
   let a;
   try { a = arg ? decodeURIComponent(arg.split('?')[0]) : undefined; } catch { a = undefined; }
@@ -198,7 +198,7 @@ function cxRoute() {
 }
 
 function cxNavActive(seg) {
-  const map = { home: '#/', atlas: '#/atlas', problem: '#/atlas', plan: '#/plan', journey: '#/journey', priorities: '#/atlas', bestworld: '#/', agi: '#/' };
+  const map = { home: '#/', atlas: '#/atlas', problem: '#/atlas', plan: '#/plan', journey: '#/journey', priorities: '#/atlas', bestworld: '#/', agi: '#/', watchlist: '#/', ea: '#/' };
   document.querySelectorAll('.cx-nav a').forEach(a => {
     const active = a.getAttribute('href') === (map[seg] || '#/');
     a.classList.toggle('active', active);
@@ -233,27 +233,43 @@ function renderHome() {
 
     <div class="cx-today">
       <h2 class="cx-h2">Find your bearings</h2>
-      <a class="cx-card cx-today-card" href="#/priorities" style="margin-bottom:10px">
-        <span class="cx-today-emoji">📊</span>
-        <div>
-          <div class="cx-today-name">Where does humanity stand?</div>
-          <div class="cx-today-stat">All 25 problems ranked by how solved they are — where only will is missing, and where knowledge itself is.</div>
-        </div>
-      </a>
-      <a class="cx-card cx-today-card" href="#/bestworld" style="margin-bottom:10px">
-        <span class="cx-today-emoji">🏛️</span>
-        <div>
-          <div class="cx-today-name">Where are we trying to go?</div>
-          <div class="cx-today-stat">The best world according to eight philosophers — and the problems that block every route to it.</div>
-        </div>
-      </a>
-      <a class="cx-card cx-today-card" href="#/agi">
-        <span class="cx-today-emoji">🤖</span>
-        <div>
-          <div class="cx-today-name">What comes after AGI?</div>
-          <div class="cx-today-stat">The problems waiting on the far side of general intelligence — speculative by nature, too big to ignore.</div>
-        </div>
-      </a>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:10px">
+        <a class="cx-card cx-today-card" href="#/priorities">
+          <span class="cx-today-emoji">📊</span>
+          <div>
+            <div class="cx-today-name">Where does humanity stand?</div>
+            <div class="cx-today-stat">All 25 problems ranked by how solved they are — where only will is missing, and where knowledge itself is.</div>
+          </div>
+        </a>
+        <a class="cx-card cx-today-card" href="#/ea">
+          <span class="cx-today-emoji">🎯</span>
+          <div>
+            <div class="cx-today-name">Where can you do the most good?</div>
+            <div class="cx-today-stat">The EA lens on all 25: importance, neglectedness, tractability — tiered for the next hundred years.</div>
+          </div>
+        </a>
+        <a class="cx-card cx-today-card" href="#/bestworld">
+          <span class="cx-today-emoji">🏛️</span>
+          <div>
+            <div class="cx-today-name">Where are we trying to go?</div>
+            <div class="cx-today-stat">Eight philosophers' best worlds, a postcard from each — and how far today measurably is from them.</div>
+          </div>
+        </a>
+        <a class="cx-card cx-today-card" href="#/watchlist">
+          <span class="cx-today-emoji">📡</span>
+          <div>
+            <div class="cx-today-name">What's rising next?</div>
+            <div class="cx-today-stat">Eight problems climbing toward the Atlas — superbugs, heat, scam factories, falling trust.</div>
+          </div>
+        </a>
+        <a class="cx-card cx-today-card" href="#/agi">
+          <span class="cx-today-emoji">🤖</span>
+          <div>
+            <div class="cx-today-name">What comes after AGI?</div>
+            <div class="cx-today-stat">The problems waiting on the far side of general intelligence — speculative by nature, too big to ignore.</div>
+          </div>
+        </a>
+      </div>
     </div>
 
     <div class="cx-today">
@@ -435,6 +451,7 @@ function renderPriorities() {
     ${section('frontier')}
     <div class="cx-detail-ctas" style="margin-top:26px">
       <a class="cx-btn" href="#/bestworld">🏛️ Where are we trying to go? →</a>
+      <a class="cx-btn cx-btn-ghost" href="#/ea">🎯 The EA lens</a>
       <a class="cx-btn cx-btn-ghost" href="#/atlas">Browse by category</a>
     </div>
     ${cxFooter()}
@@ -447,36 +464,58 @@ function renderPriorities() {
 const CX_VISIONS = [
   { emoji: '🏛️', who: 'Aristotle', name: 'Eudaimonia',
     vision: 'A world where every person can flourish — not merely survive, but live out their capacities in full: reason, friendship, excellence.',
+    world: 'A morning in that world: no child wakes hungry, and the question at school is not whether you learn to read but what you will master. Work exists, but it is chosen for excellence rather than survival. Friendship and civic life fill the hours that scarcity used to eat.',
     blocks: ['education', 'extreme-poverty', 'loneliness'] },
   { emoji: '📈', who: 'Bentham & Mill', name: 'The greatest happiness',
     vision: 'Suffering reduced wherever it exists. And Bentham’s test was never "can they reason?" but "can they suffer?" — the circle includes animals.',
+    world: 'Pain has become rare enough to make the news. The last malaria death has a date, and it is carved in a museum. Meat is grown rather than raised, no sentient creature spends its life in a cage, and mental anguish is treated as seriously as a broken leg.',
     blocks: ['malaria', 'child-mortality', 'factory-farming'] },
   { emoji: '⚖️', who: 'Immanuel Kant', name: 'The kingdom of ends',
     vision: 'Every human treated always as an end in themselves, never merely as a means — no one’s dignity traded away.',
+    world: 'No one is used purely as an instrument: no trafficked worker, no bribed official, no girl married off as a bargaining chip. Every institution can look each person in the eye, because every rule could be justified to the person it binds.',
     blocks: ['gender-inequality', 'refugees', 'corruption'] },
   { emoji: '🎭', who: 'John Rawls', name: 'Justice as fairness',
     vision: 'The world you would design if you didn’t know who you’d be born as. Behind that veil, you’d fix the worst-off positions first.',
+    world: 'Being born unlucky is no longer a sentence. The worst-off neighborhood on Earth has clean water, a good school and a working clinic — because society was designed as if anyone could have been born there, and someone was.',
     blocks: ['extreme-poverty', 'maternal-mortality', 'unsafe-water'] },
   { emoji: '🌱', who: 'Sen & Nussbaum', name: 'Capabilities',
     vision: 'Freedom measured by what people can actually do and be: learn, move, see, participate, choose their own life.',
+    world: 'Freedom is measured in verbs: she can read, he can see, they can vote, move, build. Cataracts are reversed in an afternoon, every village is one hop from the world’s knowledge, and nobody’s life script is written by their birthplace.',
     blocks: ['education', 'preventable-blindness', 'digital-exclusion'] },
   { emoji: '🔓', who: 'Karl Popper', name: 'The open society',
     vision: 'Institutions you can criticize and correct without violence — a civilization whose error-correction never stops.',
+    world: 'Power has become boring: leaders are replaced without blood, mistakes are found and fixed in the open, and journalists die of old age. Institutions compete on how fast they correct themselves, not on how well they hide.',
     blocks: ['corruption', 'digital-exclusion', 'refugees'] },
   { emoji: '♾️', who: 'David Deutsch', name: 'The beginning of infinity',
     vision: 'A civilization that treats every problem as soluble and never stops creating the knowledge to solve the next one — including the risks that could end the whole project.',
+    world: 'Problems still exist — better ones. Civilization treats each as soluble, knowledge compounds like interest, and no one lies awake fearing that a single pandemic, asteroid or mistake could end the whole project. The frontier is open and it stays open.',
     blocks: ['pandemic-preparedness', 'education', 'tuberculosis'] },
   { emoji: '🫱', who: 'Peter Singer', name: 'The expanding circle',
     vision: 'Moral concern that refuses to stop at borders, or at our own species — distance is not a reason to let a child drown.',
+    world: 'The circle has finished expanding: distance, borders and species no longer decide whose suffering counts. Helping is not charity but reflex — the drowning child is pulled from the pond whether she is ten meters away or ten thousand kilometers.',
     blocks: ['extreme-poverty', 'neglected-tropical-diseases', 'factory-farming'] },
 ];
+
+/* Distance-to-vision readout, computed live from the Atlas: of a vision's
+   blocking problems, how many already have proven tools (≥2 strong-evidence
+   interventions) and how many are still worsening. The honest version of a
+   future simulation — not a prediction, a measurement of the gap. */
+function cxVisionDistance(blocks) {
+  const ps = blocks.map(compassProblem).filter(Boolean);
+  const proven = ps.filter(p => p.interventions.filter(iv => iv.evidence === 'strong').length >= 2).length;
+  const worsening = ps.filter(p => p.trend.dir === 'worsening').length;
+  const improving = ps.filter(p => p.trend.dir === 'improving').length;
+  return { total: ps.length, proven, worsening, improving };
+}
 
 function renderBestWorld() {
   cxView().innerHTML = `
     <p class="cx-eyebrow">The destination</p>
     <h1 class="cx-h1">The best world, according to philosophers</h1>
     <p class="cx-sub">Utopia is not a place — it’s a direction. Philosophers have disagreed about the destination for 2,400 years, but lay their maps on top of each other and the same obstacles appear on nearly every route. Those obstacles are this Atlas. Solving them isn’t one worldview’s agenda; it’s the shared road.</p>
-    ${CX_VISIONS.map(v => `
+    ${CX_VISIONS.map(v => {
+      const d = cxVisionDistance(v.blocks);
+      return `
       <div class="cx-card" style="margin-top:14px">
         <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
           <span style="font-size:1.3rem">${v.emoji}</span>
@@ -484,10 +523,19 @@ function renderBestWorld() {
           <span style="color:var(--text-dim);font-size:0.8rem">${v.who}</span>
         </div>
         <p style="color:var(--text-dim);font-size:0.88rem;margin:8px 0 10px">${v.vision}</p>
+        <div class="cx-vision-world">
+          <div style="font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;color:var(--gold);margin-bottom:5px">📮 A postcard from that world</div>
+          <p style="font-size:0.86rem;line-height:1.6;margin:0">${v.world}</p>
+        </div>
+        <div style="color:var(--text-dim);font-size:0.78rem;margin:10px 0 8px">
+          <strong style="color:var(--text)">Distance today:</strong>
+          ${d.proven} of ${d.total} blocking problems already have proven tools
+          · ${d.improving} improving${d.worsening ? ` · <span style="color:var(--red);font-weight:700">${d.worsening} still worsening</span>` : ''}
+        </div>
         <div style="display:flex;flex-wrap:wrap;gap:6px">
           ${v.blocks.map(id => { const p = compassProblem(id); return p ? `<a class="cx-chip" style="text-decoration:none" href="#/problem/${p.id}">${p.emoji} ${esc(p.name)}</a>` : ''; }).join('')}
         </div>
-      </div>`).join('')}
+      </div>`; }).join('')}
     <div class="cx-detail-ctas" style="margin-top:26px">
       <a class="cx-btn" href="#/priorities">📊 Where do we stand today? →</a>
       <a class="cx-btn cx-btn-ghost" href="#/agi">🤖 What comes after AGI?</a>
@@ -581,6 +629,150 @@ function renderAgi() {
   `;
   cxView().querySelectorAll('[data-agi-out]').forEach(el =>
     el.addEventListener('click', () => cxTrack('outbound_agi_click', { dest: el.dataset.agiOut })));
+}
+
+/* Watchlist view — rising problems that are climbing toward the Atlas.
+   Real, measurable trends, but the intervention evidence is younger than
+   the Atlas standard. This is where problems audition for entry. */
+const CX_RISING = [
+  { emoji: '🦠', name: 'Antimicrobial resistance', tag: 'Superbugs outrunning our antibiotics',
+    stat: 'Drug-resistant infections directly kill over 1.1 million people a year, projected to near 1.9 million by 2050.',
+    why: 'Antibiotics are overused in humans and farm animals while the pipeline of new ones has thinned to a trickle — resistance compounds, discovery doesn’t.',
+    works: 'Stewardship programs, incentive schemes for new antibiotics, vaccines that prevent the infection in the first place, and clean water cutting infection loads.' },
+  { emoji: '🌡️', name: 'Extreme heat', tag: 'The deadliest weather, and the fastest-growing',
+    stat: 'Heat already contributes to roughly half a million deaths a year — more than floods, storms and hurricanes combined.',
+    why: 'Every fraction of a degree adds exposure, and the populations aging fastest live in the regions heating fastest.',
+    works: 'Heat action plans, early-warning systems, cool roofs and shaded cities — cheap, proven, and adopted by only a fraction of at-risk cities.' },
+  { emoji: '🧓', name: 'Ageing societies', tag: 'Pension pyramids meeting population columns',
+    stat: 'By 2050 one person in six on Earth will be over 65, and two-thirds of countries are already below replacement fertility.',
+    why: 'Care systems, pensions and labor markets were designed for young populations that no longer exist — the math breaks slowly, then suddenly.',
+    works: 'Healthspan research, care-workforce investment, later-life work redesign, and family support policies with honest evidence about what moves fertility (little does).' },
+  { emoji: '📱', name: 'Youth mental health', tag: 'The steepest curve on any health chart',
+    stat: 'Anxiety and depression among adolescents have climbed sharply since the early 2010s; suicide is a leading cause of death for ages 15–29.',
+    why: 'Causes are contested — phones, isolation, economic anxiety — but the curve itself is not, and treatment systems were undersized before it began.',
+    works: 'School-based therapy programs, closing the treatment gap, and honest research on the social-media question instead of culture war.' },
+  { emoji: '💧', name: 'Groundwater depletion', tag: 'Invisible until the wells fail',
+    stat: 'The aquifers behind roughly 40% of irrigated food are dropping, many at accelerating rates.',
+    why: 'Water underground is unmetered, unpriced and politically untouchable — so it is mined like a free resource until it isn’t there.',
+    works: 'Metering and fair pricing, drip irrigation, managed recharge, and crop choices that match the water that actually falls.' },
+  { emoji: '🗳️', name: 'Democratic backsliding', tag: 'More people autocratizing than democratizing',
+    stat: 'Global freedom has declined for 18 consecutive years; most of humanity now lives under autocratic or autocratizing rule.',
+    why: 'The playbook — capture courts, starve media, keep elections as theater — travels between countries faster than the defenses do.',
+    works: 'Independent journalism, election infrastructure, anti-corruption enforcement — the same tools as the Atlas corruption entry, deployed earlier.' },
+  { emoji: '🧪', name: 'Forever chemicals', tag: 'PFAS and microplastics, everywhere at once',
+    stat: 'Rainwater worldwide now exceeds proposed safe limits for PFOA; microplastics turn up in blood, placentas and Antarctic snow.',
+    why: 'The chemicals were designed not to break down, so every year of production is permanent — exposure only ratchets up.',
+    works: 'Restricting non-essential uses (the EU is moving), safer substitution, and destruction tech for the worst-contaminated sites.' },
+  { emoji: '💸', name: 'Industrialized fraud', tag: 'Scam factories running on trafficked labor',
+    stat: 'Online fraud now steals an estimated $1 trillion a year, run partly from compounds where hundreds of thousands are held in forced labor.',
+    why: 'AI tools make every scam cheaper, more fluent and more personal, while enforcement stops at every border the money crosses.',
+    works: 'Financial chokepoints, platform takedowns, cross-border enforcement, and freeing the trafficked workers the industry runs on.' },
+];
+
+function renderWatchlist() {
+  cxView().innerHTML = `
+    <p class="cx-eyebrow">The watchlist</p>
+    <h1 class="cx-h1">Rising problems</h1>
+    <p class="cx-sub">The Atlas holds problems with mature evidence about what works. This page is the queue behind it: problems whose <strong>trend lines are real and climbing</strong>, but whose intervention evidence is still young. This is where problems audition for the Atlas — and where attention arriving early counts double.</p>
+    ${CX_RISING.map(r => `
+      <div class="cx-card" style="margin-top:14px">
+        <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+          <span style="font-size:1.3rem">${r.emoji}</span>
+          <span style="font-weight:800">${r.name}</span>
+          <span class="cx-badge cx-badge-worsening">↗ Rising</span>
+        </div>
+        <p style="color:var(--gold);font-size:0.8rem;font-weight:700;margin-top:4px">${r.tag}</p>
+        <p style="font-size:0.86rem;margin:8px 0 6px">${r.stat}</p>
+        <p style="color:var(--text-dim);font-size:0.84rem;margin:0 0 6px"><strong style="color:var(--text)">Why it’s rising:</strong> ${r.why}</p>
+        <p style="color:var(--text-dim);font-size:0.84rem;margin:0"><strong style="color:var(--text)">What works so far:</strong> ${r.works}</p>
+      </div>`).join('')}
+    <div class="cx-detail-ctas" style="margin-top:26px">
+      <a class="cx-btn" href="#/atlas">🗺️ The 25 with mature evidence →</a>
+      <a class="cx-btn cx-btn-ghost" href="#/agi">🤖 And after AGI?</a>
+    </div>
+    ${cxFooter()}
+  `;
+}
+
+/* EA lens view — the 25 Atlas problems through the effective altruism
+   community's framework: importance × neglectedness × tractability, on a
+   century view. Ratings are tiers, not scores: they mirror the published
+   positions of GiveWell, 80,000 Hours, Open Philanthropy and ACE rather
+   than inventing numeric precision the data can't support. */
+const CX_EA = [
+  { id: 'pandemic-preparedness', tier: 1, s: 'H', n: 'H', t: 'M', note: 'On a century view one engineered or natural pandemic can dominate everything else, and preparedness stays badly underfunded between crises.' },
+  { id: 'malaria', tier: 1, s: 'H', n: 'M', t: 'H', note: 'GiveWell’s longest-standing top cause: enormous burden, proven $5 nets, still short of money every year.' },
+  { id: 'factory-farming', tier: 1, s: 'H', n: 'H', t: 'M', note: 'Tens of billions of sentient animals against a few hundred million dollars of advocacy — the largest suffering-per-dollar-of-attention gap on this list.' },
+  { id: 'lead-poisoning', tier: 1, s: 'H', n: 'H', t: 'H', note: 'One in three children affected, whole countries without testing, and regulation that is cheap and permanent once passed.' },
+  { id: 'neglected-tropical-diseases', tier: 1, s: 'M', n: 'H', t: 'H', note: 'The word neglected is in the name: deworming and elimination cost cents per person treated.' },
+  { id: 'child-mortality', tier: 1, s: 'H', n: 'M', t: 'H', note: 'Vaccine incentives and oral rehydration remain among the cheapest lives saved anywhere in the world.' },
+  { id: 'tuberculosis', tier: 2, s: 'H', n: 'M', t: 'M', note: 'The biggest infectious killer receives a fraction of HIV’s funding; finding the missing cases is the tractable gap.' },
+  { id: 'unsafe-water', tier: 2, s: 'H', n: 'M', t: 'H', note: 'Chlorination at the water source is one of the best-evidenced child-survival buys of the last decade.' },
+  { id: 'hunger', tier: 2, s: 'H', n: 'M', t: 'H', note: 'Fortification and therapeutic feeding are proven — the missing ingredient is delivery funding, not knowledge.' },
+  { id: 'extreme-poverty', tier: 2, s: 'H', n: 'M', t: 'H', note: 'Direct cash is the benchmark every other intervention has to beat, and it scales almost without limit.' },
+  { id: 'maternal-mortality', tier: 2, s: 'M', n: 'H', t: 'H', note: 'Most of these deaths have been preventable since the 1950s; a fistula repair restores a life for a few hundred dollars.' },
+  { id: 'preventable-blindness', tier: 2, s: 'M', n: 'M', t: 'H', note: 'A $30–$100 surgery with instant, visible results — tractability is the star.' },
+  { id: 'tobacco', tier: 2, s: 'H', n: 'H', t: 'H', note: 'Tobacco taxation is arguably the most cost-effective health policy known; industry opposition, not knowledge, is the barrier.' },
+  { id: 'road-deaths', tier: 2, s: 'M', n: 'H', t: 'M', note: '1.2 million deaths a year attract almost no philanthropy, and the policy playbook (helmets, speed, drink-driving) is proven.' },
+  { id: 'air-pollution', tier: 2, s: 'H', n: 'M', t: 'M', note: 'Kills millions yearly, but funding crowds toward carbon and leaves clean-air advocacy lean.' },
+  { id: 'hiv-aids', tier: 2, s: 'M', n: 'L', t: 'M', note: 'Huge burden, but the least neglected disease here — the marginal dollar often goes further elsewhere.' },
+  { id: 'corruption', tier: 2, s: 'H', n: 'M', t: 'L', note: 'Upstream of nearly everything and chronically hard to move; investigative journalism is the tractable edge.' },
+  { id: 'climate-change', tier: 3, s: 'H', n: 'L', t: 'M', note: 'Enormous stakes and the least neglected problem on the list — EA money targets overlooked corners like advanced clean energy advocacy.' },
+  { id: 'education', tier: 3, s: 'H', n: 'L', t: 'M', note: 'Vast scale and heavy funding; the evidence-based approaches (teaching at the right level) are only now displacing what doesn’t work.' },
+  { id: 'gender-inequality', tier: 3, s: 'H', n: 'M', t: 'M', note: 'Immense scale; the best marginal buys — girls’ education, ending child marriage — are strong, the broader space is crowded.' },
+  { id: 'refugees', tier: 3, s: 'M', n: 'M', t: 'L', note: 'The bottleneck is political will, not caring — tractability for outside money is the constraint.' },
+  { id: 'homelessness', tier: 3, s: 'M', n: 'L', t: 'M', note: 'Housing First works, but cost per person helped runs orders of magnitude above global-health buys.' },
+  { id: 'loneliness', tier: 3, s: 'M', n: 'H', t: 'L', note: 'Rising and under-researched — scalable interventions are still being figured out.' },
+  { id: 'digital-exclusion', tier: 3, s: 'M', n: 'M', t: 'M', note: 'Improving fast on its own as connectivity spreads; the marginal dollar adds less than the trend does.' },
+  { id: 'ocean-health', tier: 3, s: 'M', n: 'M', t: 'L', note: 'Policy wins are real but slow, and scale is hard to price against direct suffering averted.' },
+];
+
+const CX_EA_TIERS = {
+  1: { title: '🌟 Outstanding', sub: 'Where the EA community sends marginal money and careers first: big, neglected, and movable.' },
+  2: { title: '💪 High impact', sub: 'Proven and important — funded, but not fully; strong picks with the right intervention.' },
+  3: { title: '🌍 Important, but crowded or harder to move', sub: 'Not less important — but the next dollar or hour faces more competition or thicker walls.' },
+};
+
+function renderEA() {
+  const lvl = { H: 'High', M: 'Med', L: 'Low' };
+  const itn = (label, v) => `<span class="cx-itn ${v === 'H' ? 'hi' : v === 'L' ? 'lo' : ''}">${label} <b>${lvl[v]}</b></span>`;
+  const tierBlock = t => `
+    <h2 class="cx-h2" style="margin-top:26px">${CX_EA_TIERS[t].title}</h2>
+    <p style="color:var(--text-dim);font-size:0.84rem;margin:4px 0 12px">${CX_EA_TIERS[t].sub}</p>
+    ${CX_EA.filter(e => e.tier === t).map(e => {
+      const p = compassProblem(e.id);
+      if (!p) return '';
+      return `
+      <a class="cx-card" style="display:block;text-decoration:none;color:inherit;margin-top:10px" href="#/problem/${p.id}">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-size:1.2rem">${p.emoji}</span>
+          <span style="font-weight:800">${esc(p.name)}</span>
+          <span style="display:inline-flex;gap:5px;margin-left:auto">${itn('Importance', e.s)}${itn('Neglect', e.n)}${itn('Tractable', e.t)}</span>
+        </div>
+        <p style="color:var(--text-dim);font-size:0.82rem;margin:7px 0 0">${e.note}</p>
+      </a>`; }).join('')}`;
+  cxView().innerHTML = `
+    <p class="cx-eyebrow">The EA lens</p>
+    <h1 class="cx-h1">Where can you do the most good?</h1>
+    <p class="cx-sub">The effective altruism community ranks problems by three questions: how <strong>big</strong> is it, how <strong>neglected</strong> is it, and how <strong>tractable</strong> is it — because the most good per hour or dollar hides where importance and neglect overlap. Below are all 25 Atlas problems through that lens, in tiers rather than fake-precise scores, mirroring the published views of GiveWell, 80,000 Hours, Open Philanthropy and Animal Charity Evaluators. One lens among several — <a href="#/priorities">the Priorities view</a> ranks the same problems by whether the knowledge exists.</p>
+    <div class="cx-card" style="border-color:var(--gold)">
+      <div style="font-weight:800;margin-bottom:5px">💯 On a 100-year view</div>
+      <p style="color:var(--text-dim);font-size:0.85rem;margin:0">Over a century, the EA community weighs <strong style="color:var(--text)">trajectory risks</strong> highest of all — pandemics that could end the run, and the transition to machine intelligence. That is why <a href="#/problem/pandemic-preparedness">pandemic preparedness</a> tops the tiers below, and why the <a href="#/agi">After AGI problems</a> belong in this conversation even though they can’t be scored yet.</p>
+    </div>
+    ${tierBlock(1)}${tierBlock(2)}${tierBlock(3)}
+    <div class="cx-card" style="margin-top:26px">
+      <div style="font-weight:800;margin-bottom:6px">🧭 Redirect yourself</div>
+      <p style="color:var(--text-dim);font-size:0.84rem;margin-bottom:10px">Three doors, depending on what you have to give:</p>
+      <div class="cx-detail-ctas">
+        <a class="cx-btn" data-ea-out="givewell" href="https://www.givewell.org/" target="_blank" rel="noopener">💸 GiveWell: give where it works →</a>
+        <a class="cx-btn cx-btn-ghost" data-ea-out="80000hours" href="https://80000hours.org/" target="_blank" rel="noopener">🛠️ 80,000 Hours: your career</a>
+        <a class="cx-btn cx-btn-ghost" data-ea-out="gwwc" href="https://www.givingwhatwecan.org/" target="_blank" rel="noopener">🤝 Giving What We Can: the pledge</a>
+      </div>
+    </div>
+    ${cxFooter()}
+  `;
+  cxView().querySelectorAll('[data-ea-out]').forEach(el =>
+    el.addEventListener('click', () => cxTrack('outbound_ea_click', { dest: el.dataset.eaOut })));
 }
 
 function renderProblem(id) {

@@ -99,3 +99,18 @@ with a real licensed photograph, overwrite the file at the same path and
 filename — no code changes anywhere. Keep 16:9, roughly 640×360, and be
 careful with dignity: show the problem or the solution at work, not
 suffering staged for sympathy.
+
+## The five lenses and their sync model
+
+The app now has five "bearings" views: Priorities (Deutsch, computed),
+EA lens (ITN tiers), Best World (philosophers + postcards + computed
+distance), Watchlist (rising problems), and After AGI. The EA tiers
+mirror published GiveWell / 80,000 Hours / Open Philanthropy / ACE
+positions — re-check them when those orgs update, roughly yearly, and
+keep tiers not scores. Watchlist entries graduate to the Atlas when
+their intervention evidence matures.
+
+Sync discipline: `CX_RISING` and `CX_EA` live only in app.js —
+build-pages.py extracts them automatically, so edit once. `VISIONS`
+postcards and `AGI_ITEMS` are hand-synced between app.js and
+build-pages.py; change both or the app and static pages drift.

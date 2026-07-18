@@ -526,30 +526,40 @@ def priorities_page(problems: list[dict], analytics_html: str) -> str:
         og_image=f"{SITE}/compass/og/priorities.jpg")
 
 
+# (emoji, who, name, vision, world postcard, blocking ids) — world text
+# kept in sync by hand with CX_VISIONS in app.js.
 VISIONS = [
     ("🏛️", "Aristotle", "Eudaimonia",
      "A world where every person can flourish — not merely survive, but live out their capacities in full: reason, friendship, excellence.",
+     "A morning in that world: no child wakes hungry, and the question at school is not whether you learn to read but what you will master. Work exists, but it is chosen for excellence rather than survival. Friendship and civic life fill the hours that scarcity used to eat.",
      ["education", "extreme-poverty", "loneliness"]),
     ("📈", "Bentham & Mill", "The greatest happiness",
      "Suffering reduced wherever it exists. And Bentham's test was never \"can they reason?\" but \"can they suffer?\" — the circle includes animals.",
+     "Pain has become rare enough to make the news. The last malaria death has a date, and it is carved in a museum. Meat is grown rather than raised, no sentient creature spends its life in a cage, and mental anguish is treated as seriously as a broken leg.",
      ["malaria", "child-mortality", "factory-farming"]),
     ("⚖️", "Immanuel Kant", "The kingdom of ends",
      "Every human treated always as an end in themselves, never merely as a means — no one's dignity traded away.",
+     "No one is used purely as an instrument: no trafficked worker, no bribed official, no girl married off as a bargaining chip. Every institution can look each person in the eye, because every rule could be justified to the person it binds.",
      ["gender-inequality", "refugees", "corruption"]),
     ("🎭", "John Rawls", "Justice as fairness",
      "The world you would design if you didn't know who you'd be born as. Behind that veil, you'd fix the worst-off positions first.",
+     "Being born unlucky is no longer a sentence. The worst-off neighborhood on Earth has clean water, a good school and a working clinic — because society was designed as if anyone could have been born there, and someone was.",
      ["extreme-poverty", "maternal-mortality", "unsafe-water"]),
     ("🌱", "Sen & Nussbaum", "Capabilities",
      "Freedom measured by what people can actually do and be: learn, move, see, participate, choose their own life.",
+     "Freedom is measured in verbs: she can read, he can see, they can vote, move, build. Cataracts are reversed in an afternoon, every village is one hop from the world's knowledge, and nobody's life script is written by their birthplace.",
      ["education", "preventable-blindness", "digital-exclusion"]),
     ("🔓", "Karl Popper", "The open society",
      "Institutions you can criticize and correct without violence — a civilization whose error-correction never stops.",
+     "Power has become boring: leaders are replaced without blood, mistakes are found and fixed in the open, and journalists die of old age. Institutions compete on how fast they correct themselves, not on how well they hide.",
      ["corruption", "digital-exclusion", "refugees"]),
     ("♾️", "David Deutsch", "The beginning of infinity",
      "A civilization that treats every problem as soluble and never stops creating the knowledge to solve the next one — including the risks that could end the whole project.",
+     "Problems still exist — better ones. Civilization treats each as soluble, knowledge compounds like interest, and no one lies awake fearing that a single pandemic, asteroid or mistake could end the whole project. The frontier is open and it stays open.",
      ["pandemic-preparedness", "education", "tuberculosis"]),
     ("🫱", "Peter Singer", "The expanding circle",
      "Moral concern that refuses to stop at borders, or at our own species — distance is not a reason to let a child drown.",
+     "The circle has finished expanding: distance, borders and species no longer decide whose suffering counts. Helping is not charity but reflex — the drowning child is pulled from the pond whether she is ten meters away or ten thousand kilometers.",
      ["extreme-poverty", "neglected-tropical-diseases", "factory-farming"]),
 ]
 
@@ -557,6 +567,16 @@ VISIONS = [
 def bestworld_page(problems: list[dict], analytics_html: str) -> str:
     """Static, indexable version of the app's Best World view."""
     by_id = {p["id"]: p for p in problems}
+
+    def distance(blocks: list[str]) -> str:
+        ps = [by_id[b] for b in blocks if b in by_id]
+        proven = sum(1 for p in ps if sum(1 for iv in p["interventions"] if iv["evidence"] == "strong") >= 2)
+        improving = sum(1 for p in ps if p["trend"]["dir"] == "improving")
+        worsening = sum(1 for p in ps if p["trend"]["dir"] == "worsening")
+        wors = f' · <span style="color:var(--red);font-weight:700">{worsening} still worsening</span>' if worsening else ""
+        return (f'<strong style="color:var(--text)">Distance today:</strong> '
+                f'{proven} of {len(ps)} blocking problems already have proven tools · {improving} improving{wors}')
+
     cards = "".join(f"""
     <div class="cx-card" style="margin-top:14px">
       <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
@@ -565,10 +585,15 @@ def bestworld_page(problems: list[dict], analytics_html: str) -> str:
         <span style="color:var(--text-dim);font-size:0.8rem">{esc(who)}</span>
       </div>
       <p style="color:var(--text-dim);font-size:0.88rem;margin:8px 0 10px">{esc(vision)}</p>
+      <div class="cx-vision-world">
+        <div style="font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;color:var(--gold);margin-bottom:5px">📮 A postcard from that world</div>
+        <p style="font-size:0.86rem;line-height:1.6;margin:0">{esc(world)}</p>
+      </div>
+      <div style="color:var(--text-dim);font-size:0.78rem;margin:10px 0 8px">{distance(blocks)}</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px">
         {''.join(f'<a class="cx-chip" style="text-decoration:none" href="p/{bid}.html">{by_id[bid]["emoji"]} {esc(by_id[bid]["name"])}</a>' for bid in blocks if bid in by_id)}
       </div>
-    </div>""" for emoji, who, name, vision, blocks in VISIONS)
+    </div>""" for emoji, who, name, vision, world, blocks in VISIONS)
     body = f"""
     <p class="cx-eyebrow">The destination</p>
     <h1 class="cx-h1">The best world, according to philosophers</h1>
@@ -675,6 +700,110 @@ def agi_page(problems: list[dict], analytics_html: str) -> str:
         og_image=f"{SITE}/compass/og/after-agi.jpg")
 
 
+def load_app_arrays(*names: str) -> dict:
+    """Pull literal data arrays (CX_RISING, CX_EA, …) out of app.js so the
+    static pages render from the same source and can never drift."""
+    src = (COMPASS / "app.js").read_text()
+    out = {}
+    for name in names:
+        m = re.search(rf"const {name} = (\[[\s\S]*?\n\]);", src)
+        if not m:
+            raise SystemExit(f"could not find {name} in app.js")
+        dump = subprocess.run(
+            ["node", "-e", f"console.log(JSON.stringify({m.group(1)}))"],
+            capture_output=True, text=True, check=True)
+        out[name] = json.loads(dump.stdout)
+    return out
+
+
+def watchlist_page(analytics_html: str) -> str:
+    """Static, indexable version of the app's Watchlist view."""
+    rising = load_app_arrays("CX_RISING")["CX_RISING"]
+    cards = "".join(f"""
+    <div class="cx-card" style="margin-top:14px">
+      <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+        <span style="font-size:1.3rem">{r["emoji"]}</span>
+        <span style="font-weight:800">{esc(r["name"])}</span>
+        <span class="cx-badge cx-badge-worsening">↗ Rising</span>
+      </div>
+      <p style="color:var(--gold);font-size:0.8rem;font-weight:700;margin-top:4px">{esc(r["tag"])}</p>
+      <p style="font-size:0.86rem;margin:8px 0 6px">{esc(r["stat"])}</p>
+      <p style="color:var(--text-dim);font-size:0.84rem;margin:0 0 6px"><strong style="color:var(--text)">Why it's rising:</strong> {esc(r["why"])}</p>
+      <p style="color:var(--text-dim);font-size:0.84rem;margin:0"><strong style="color:var(--text)">What works so far:</strong> {esc(r["works"])}</p>
+    </div>""" for r in rising)
+    body = f"""
+    <p class="cx-eyebrow">The watchlist</p>
+    <h1 class="cx-h1">Rising problems</h1>
+    <p class="cx-sub">The Problem Atlas holds problems with mature evidence about what works. This page is the queue behind it: problems whose <strong>trend lines are real and climbing</strong>, but whose intervention evidence is still young. This is where problems audition for the Atlas — and where attention arriving early counts double.</p>
+    {cards}
+    <div class="cx-detail-ctas" style="margin-top:26px">
+      <a class="cx-btn" href="p/">🗺️ The 25 with mature evidence →</a>
+      <a class="cx-btn cx-btn-ghost" href="after-agi.html">🤖 And after AGI?</a>
+    </div>"""
+    return _page_shell(
+        "Rising World Problems to Watch — Superbugs, Heat, Fraud, Backsliding",
+        "Eight problems with climbing trend lines: antimicrobial resistance, extreme heat, ageing societies, youth mental health, groundwater, democratic backsliding, forever chemicals, industrialized fraud.",
+        f"{SITE}/compass/watchlist.html", body, analytics_html,
+        og_image=f"{SITE}/compass/og/watchlist.jpg")
+
+
+EA_TIERS = {
+    1: ("🌟 Outstanding", "Where the EA community sends marginal money and careers first: big, neglected, and movable."),
+    2: ("💪 High impact", "Proven and important — funded, but not fully; strong picks with the right intervention."),
+    3: ("🌍 Important, but crowded or harder to move", "Not less important — but the next dollar or hour faces more competition or thicker walls."),
+}
+
+
+def ea_page(problems: list[dict], analytics_html: str) -> str:
+    """Static, indexable version of the app's EA lens view."""
+    ea = load_app_arrays("CX_EA")["CX_EA"]
+    by_id = {p["id"]: p for p in problems}
+    lvl = {"H": "High", "M": "Med", "L": "Low"}
+
+    def itn(label: str, v: str) -> str:
+        cls = " hi" if v == "H" else " lo" if v == "L" else ""
+        return f'<span class="cx-itn{cls}">{label} <b>{lvl[v]}</b></span>'
+
+    def tier_block(t: int) -> str:
+        title, sub = EA_TIERS[t]
+        rows = "".join(f"""
+      <a class="cx-card" style="display:block;text-decoration:none;color:inherit;margin-top:10px" href="p/{e["id"]}.html">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-size:1.2rem">{by_id[e["id"]]["emoji"]}</span>
+          <span style="font-weight:800">{esc(by_id[e["id"]]["name"])}</span>
+          <span style="display:inline-flex;gap:5px;margin-left:auto">{itn("Importance", e["s"])}{itn("Neglect", e["n"])}{itn("Tractable", e["t"])}</span>
+        </div>
+        <p style="color:var(--text-dim);font-size:0.82rem;margin:7px 0 0">{esc(e["note"])}</p>
+      </a>""" for e in ea if e["tier"] == t and e["id"] in by_id)
+        return f"""
+    <h2 class="cx-h2" style="margin-top:26px">{title}</h2>
+    <p style="color:var(--text-dim);font-size:0.84rem;margin:4px 0 12px">{sub}</p>{rows}"""
+
+    body = f"""
+    <p class="cx-eyebrow">The EA lens</p>
+    <h1 class="cx-h1">Where can you do the most good?</h1>
+    <p class="cx-sub">The effective altruism community ranks problems by three questions: how <strong>big</strong> is it, how <strong>neglected</strong> is it, and how <strong>tractable</strong> is it — because the most good per hour or dollar hides where importance and neglect overlap. Below are all 25 Atlas problems through that lens, in tiers rather than fake-precise scores, mirroring the published views of GiveWell, 80,000 Hours, Open Philanthropy and Animal Charity Evaluators. One lens among several — <a href="priorities.html">the Priorities view</a> ranks the same problems by whether the knowledge exists.</p>
+    <div class="cx-card" style="border-color:var(--gold)">
+      <div style="font-weight:800;margin-bottom:5px">💯 On a 100-year view</div>
+      <p style="color:var(--text-dim);font-size:0.85rem;margin:0">Over a century, the EA community weighs <strong style="color:var(--text)">trajectory risks</strong> highest of all — pandemics that could end the run, and the transition to machine intelligence. That is why <a href="p/pandemic-preparedness.html">pandemic preparedness</a> tops the tiers below, and why the <a href="after-agi.html">After AGI problems</a> belong in this conversation even though they can't be scored yet.</p>
+    </div>
+    {tier_block(1)}{tier_block(2)}{tier_block(3)}
+    <div class="cx-card" style="margin-top:26px">
+      <div style="font-weight:800;margin-bottom:6px">🧭 Redirect yourself</div>
+      <p style="color:var(--text-dim);font-size:0.84rem;margin-bottom:10px">Three doors, depending on what you have to give:</p>
+      <div class="cx-detail-ctas">
+        <a class="cx-btn" href="https://www.givewell.org/" target="_blank" rel="noopener">💸 GiveWell: give where it works →</a>
+        <a class="cx-btn cx-btn-ghost" href="https://80000hours.org/" target="_blank" rel="noopener">🛠️ 80,000 Hours: your career</a>
+        <a class="cx-btn cx-btn-ghost" href="https://www.givingwhatwecan.org/" target="_blank" rel="noopener">🤝 Giving What We Can: the pledge</a>
+      </div>
+    </div>"""
+    return _page_shell(
+        "The Most Effective Causes for the Next 100 Years — the EA Lens",
+        "All 25 world problems ranked by the effective altruism criteria — importance, neglectedness, tractability — in honest tiers mirroring GiveWell, 80,000 Hours and Open Philanthropy.",
+        f"{SITE}/compass/do-most-good.html", body, analytics_html,
+        og_image=f"{SITE}/compass/og/do-most-good.jpg")
+
+
 def update_sitemap(problems: list[dict]) -> None:
     sm = ROOT / "sitemap.xml"
     text = sm.read_text()
@@ -682,7 +811,9 @@ def update_sitemap(problems: list[dict]) -> None:
         [f"  <url><loc>{SITE}/compass/p/</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>",
          f"  <url><loc>{SITE}/compass/priorities.html</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>",
          f"  <url><loc>{SITE}/compass/best-world.html</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>",
-         f"  <url><loc>{SITE}/compass/after-agi.html</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>"] +
+         f"  <url><loc>{SITE}/compass/after-agi.html</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>",
+         f"  <url><loc>{SITE}/compass/watchlist.html</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>",
+         f"  <url><loc>{SITE}/compass/do-most-good.html</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>"] +
         [f"  <url><loc>{SITE}/compass/p/{p['id']}.html</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>"
          for p in problems])
     wrapped = f"  <!-- compass-pages:start (generated by compass/build-pages.py) -->\n{block}\n  <!-- compass-pages:end -->"
@@ -705,8 +836,10 @@ def main() -> None:
     (COMPASS / "priorities.html").write_text(priorities_page(problems, a))
     (COMPASS / "best-world.html").write_text(bestworld_page(problems, a))
     (COMPASS / "after-agi.html").write_text(agi_page(problems, a))
+    (COMPASS / "watchlist.html").write_text(watchlist_page(a))
+    (COMPASS / "do-most-good.html").write_text(ea_page(problems, a))
     update_sitemap(problems)
-    print(f"generated {len(problems)} problem pages + index + priorities + best-world + after-agi, sitemap updated")
+    print(f"generated {len(problems)} problem pages + index + priorities + best-world + after-agi + watchlist + do-most-good, sitemap updated")
 
 
 if __name__ == "__main__":
