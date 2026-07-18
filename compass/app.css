@@ -212,8 +212,23 @@ button { font-family: inherit; }
 .cx-badge-worsening.cx-media-badge { color: #ff8aa0; }
 .cx-badge-mixed.cx-media-badge { color: #f0a35e; }
 .cx-media-card .cx-card-body { padding: 13px 16px 15px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-.cx-sort-row { margin-top: -14px; align-items: center; }
-.cx-sort-label { color: var(--text-dim); font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; margin-right: 2px; }
+.cx-atlas-controls { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 24px 0 26px; }
+.cx-atlas-controls .cx-filters { margin: 0; flex: 1; min-width: 0; }
+.cx-sort-select {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 0 12px 0 14px; height: 34px; border-radius: 99px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  color: var(--text-dim); font-size: 0.8rem; font-weight: 700;
+  cursor: pointer; transition: border-color 0.14s, color 0.14s;
+}
+.cx-sort-select:hover, .cx-sort-select:focus-within { border-color: var(--gold); color: var(--text); }
+.cx-sort-select select {
+  appearance: none; -webkit-appearance: none;
+  background: transparent; border: none; color: var(--text);
+  font: inherit; font-weight: 700; cursor: pointer; padding-right: 14px;
+}
+.cx-sort-select select:focus { outline: none; }
+.cx-sort-select::after { content: '▾'; color: var(--text-dim); margin-left: -16px; pointer-events: none; }
 .cx-proven-count { color: var(--text-dim); font-size: 0.72rem; font-weight: 800; }
 
 /* ── Problem detail ─────────────────────────────────── */

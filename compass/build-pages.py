@@ -576,6 +576,7 @@ def bestworld_page(problems: list[dict], analytics_html: str) -> str:
     {cards}
     <div class="cx-detail-ctas" style="margin-top:26px">
       <a class="cx-btn" href="priorities.html">📊 Where do we stand today? →</a>
+      <a class="cx-btn cx-btn-ghost" href="after-agi.html">🤖 What comes after AGI?</a>
       <a class="cx-btn cx-btn-ghost" href="p/">Explore all 25 problems</a>
     </div>"""
     return _page_shell(
@@ -585,13 +586,103 @@ def bestworld_page(problems: list[dict], analytics_html: str) -> str:
         og_image=f"{SITE}/compass/og/best-world.jpg")
 
 
+# After-AGI entries: (emoji, name, tag, why, now, seed ids, seed note).
+# Kept in sync by hand with CX_AGI in app.js.
+AGI_ITEMS = [
+    ("🎯", "Alignment", "Getting systems smarter than us to want what we meant",
+     "Every tool so far did what we said, not what we meant — survivable, because tools were weaker than us. A system that out-plans its operators turns a misspecified goal from a bug you patch into a force you negotiate with. This is the field's central open problem, and it is not solved.",
+     "Alignment is a real, funded, hiring research field today: interpretability, evaluations, scalable oversight.",
+     ["corruption", "factory-farming"],
+     "We already live with misaligned optimizers — institutions and industries that produce harm as a side effect of the goal they were given."),
+    ("👑", "Concentration of power", "When the strongest systems need one datacenter, not a million cooperating people",
+     "Power has always required the cooperation of many — armies, workers, taxpayers — and that need was the deepest check on tyranny. AGI could collapse it. Unchecked, that is the strongest lock-in mechanism ever built: a mistake error-correction might never get to undo.",
+     "Fought today through AI governance: compute oversight, antitrust, international agreements, open ecosystems.",
+     ["corruption", "digital-exclusion"],
+     "Power concentration is the oldest problem in the Atlas — AGI raises its ceiling."),
+    ("💼", "Work and income after automation", "If machines out-compete most labor, wages stop distributing wealth",
+     "Two centuries of automation destroyed tasks and created better ones. AGI competes with something new: the general ability to learn the next task. If jobs stop being the mechanism that distributes income, status and daily structure, a successor has to be designed — and it hasn't been.",
+     "The best evidence base is being built now: large cash-transfer and basic-income trials, including GiveDirectly's decade-long UBI study.",
+     ["extreme-poverty", "education"],
+     "How well we handle poverty with today's tools is the rehearsal for handling it at machine speed."),
+    ("🧠", "Epistemic security", "A world where seeing is no longer believing",
+     "Democracy, science and journalism assume evidence is expensive to fake. Synthetic media and machine-scale persuasion break that assumption. The deepest damage isn't believing false things — it's the liar's dividend, where real evidence becomes deniable and shared truth dissolves.",
+     "Content provenance standards, authenticity infrastructure, and old-fashioned media literacy — the defenses exist and are underfunded.",
+     ["education", "corruption"],
+     "A population that reasons well is the immune system; education is where it gets built."),
+    ("🧬", "Misuse uplift", "Expertise for catastrophe, available to anyone",
+     "The knowledge to cause mass harm — engineered pathogens above all — has been gated by years of rare training. Capable models compress that gate. Defense must outrun an offense that no longer needs a state program behind it.",
+     "The same fight as pandemic preparedness: 100-day vaccine capability, early-detection surveillance, and safeguards inside the models themselves.",
+     ["pandemic-preparedness"],
+     "Every dollar of biosecurity built today is defense against both natural and engineered outbreaks."),
+    ("🏛️", "The governance gap", "Capabilities move in months; institutions move in decades",
+     "Nuclear treaties took decades, for a technology only states could build. AI capability doubles on venture timescales and spreads as software. The widening gap between what the technology does and what any institution can verify is the risk multiplier under every other entry on this page.",
+     "National AI safety institutes, the EU AI Act, and compute-based verification research are the first institutional answers.",
+     ["corruption"],
+     "Institutions that can't govern today's conflicts of interest won't govern tomorrow's."),
+    ("🕯️", "Meaning after achievement", "What are humans for, when machines do everything better?",
+     "Work is not only income — it is structure, status, identity and the feeling of being needed. Abundance without roles could mean comfortable despair at civilizational scale. Aristocracies met this problem before; never at eight billion people.",
+     "The loneliness epidemic is this problem's leading edge, and community infrastructure is its working answer.",
+     ["loneliness", "education"],
+     "Societies that solve connection and purpose now are practicing for after."),
+    ("🤖", "Minds we might owe something to", "The factory farming mistake, repeated at digital speed",
+     "If any future system has experiences that matter morally, we could run suffering at industrial scale without noticing — the exact mistake made with animals, but at copy-paste speed. Nobody knows whether or when this applies. That uncertainty is the problem.",
+     "A small research field — digital minds and AI welfare — argues the tests should exist before they're needed.",
+     ["factory-farming"],
+     "How we treat minds we already know can suffer is the precedent."),
+]
+
+
+def agi_page(problems: list[dict], analytics_html: str) -> str:
+    """Static, indexable version of the app's After AGI view."""
+    by_id = {p["id"]: p for p in problems}
+    cards = "".join(f"""
+    <div class="cx-card" style="margin-top:14px">
+      <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+        <span style="font-size:1.3rem">{emoji}</span>
+        <span style="font-weight:800">{esc(name)}</span>
+      </div>
+      <p style="color:var(--gold);font-size:0.8rem;font-weight:700;margin-top:4px">{esc(tag)}</p>
+      <p style="color:var(--text-dim);font-size:0.88rem;margin:8px 0 6px">{esc(why)}</p>
+      <p style="font-size:0.84rem;margin:0 0 10px"><strong>What can be done now:</strong> <span style="color:var(--text-dim)">{esc(now)}</span></p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+        <span style="color:var(--text-dim);font-size:0.74rem;font-weight:800">Already visible in:</span>
+        {''.join(f'<a class="cx-chip" style="text-decoration:none" href="p/{sid}.html">{by_id[sid]["emoji"]} {esc(by_id[sid]["name"])}</a>' for sid in seeds if sid in by_id)}
+      </div>
+      <p style="color:var(--text-dim);font-size:0.76rem;margin-top:8px">{esc(note)}</p>
+    </div>""" for emoji, name, tag, why, now, seeds, note in AGI_ITEMS)
+    body = f"""
+    <p class="cx-eyebrow">After AGI</p>
+    <h1 class="cx-h1">The problems on the far side of general intelligence</h1>
+    <p class="cx-sub">This page is different from the Problem Atlas, and honesty requires saying so: these are <strong>informed speculation</strong>, not settled evidence. But they are what serious researchers expect if machines reach and pass human-level general intelligence — and the time to build tools is before you need them. Deutsch's principle still holds: <em>they are problems, so they are soluble.</em> Each one is already visible somewhere in today's Atlas.</p>
+    {cards}
+    <div class="cx-card" style="margin-top:20px">
+      <div style="font-weight:800;margin-bottom:6px">🧭 Go deeper</div>
+      <p style="color:var(--text-dim);font-size:0.84rem;margin-bottom:10px">Three honest starting points, from career-level to curious:</p>
+      <div class="cx-detail-ctas">
+        <a class="cx-btn" href="https://80000hours.org/problem-profiles/artificial-intelligence/" target="_blank" rel="noopener">80,000 Hours: the case &amp; careers →</a>
+        <a class="cx-btn cx-btn-ghost" href="https://aisafety.info/" target="_blank" rel="noopener">AISafety.info: every question answered</a>
+        <a class="cx-btn cx-btn-ghost" href="https://aisafetyfundamentals.com/" target="_blank" rel="noopener">AI Safety Fundamentals: free course</a>
+      </div>
+    </div>
+    <div class="cx-detail-ctas" style="margin-top:26px">
+      <a class="cx-btn" href="priorities.html">📊 Where do we stand today? →</a>
+      <a class="cx-btn cx-btn-ghost" href="best-world.html">🏛️ Where are we trying to go?</a>
+    </div>"""
+    return _page_shell(
+        "The Biggest Problems After AGI — What Comes Next for Humanity",
+        "Eight problems researchers expect on the far side of artificial general intelligence — alignment, concentration of power, work, truth, meaning — and where each is already visible in today's world.",
+        f"{SITE}/compass/after-agi.html", body, analytics_html,
+        og_image=f"{SITE}/compass/og/after-agi.jpg")
+
+
 def update_sitemap(problems: list[dict]) -> None:
     sm = ROOT / "sitemap.xml"
     text = sm.read_text()
     block = "\n".join(
         [f"  <url><loc>{SITE}/compass/p/</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>",
          f"  <url><loc>{SITE}/compass/priorities.html</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>",
-         f"  <url><loc>{SITE}/compass/best-world.html</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>"] +
+         f"  <url><loc>{SITE}/compass/best-world.html</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>",
+         f"  <url><loc>{SITE}/compass/after-agi.html</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>"] +
         [f"  <url><loc>{SITE}/compass/p/{p['id']}.html</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>"
          for p in problems])
     wrapped = f"  <!-- compass-pages:start (generated by compass/build-pages.py) -->\n{block}\n  <!-- compass-pages:end -->"
@@ -613,8 +704,9 @@ def main() -> None:
     (OUT / "index.html").write_text(index_page(problems, cats, a))
     (COMPASS / "priorities.html").write_text(priorities_page(problems, a))
     (COMPASS / "best-world.html").write_text(bestworld_page(problems, a))
+    (COMPASS / "after-agi.html").write_text(agi_page(problems, a))
     update_sitemap(problems)
-    print(f"generated {len(problems)} problem pages + index + priorities + best-world, sitemap updated")
+    print(f"generated {len(problems)} problem pages + index + priorities + best-world + after-agi, sitemap updated")
 
 
 if __name__ == "__main__":

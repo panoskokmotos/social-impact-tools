@@ -1,5 +1,5 @@
 /* Impact Compass service worker — scoped to /compass/. */
-const CACHE_NAME = 'impact-compass-v30';
+const CACHE_NAME = 'impact-compass-v31';
 const OFFLINE_ASSETS = [
   './',
   './index.html',

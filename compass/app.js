@@ -179,7 +179,7 @@ function cxRoute() {
   cxTouchStreak(); // idempotent per day; installed PWAs resume for days without reloading
   const hash = location.hash.replace(/^#\/?/, '');
   const [seg, arg] = hash.split('/');
-  const routes = { '': renderHome, atlas: renderAtlas, problem: renderProblem, plan: renderPlan, journey: renderJourney, priorities: renderPriorities, bestworld: renderBestWorld };
+  const routes = { '': renderHome, atlas: renderAtlas, problem: renderProblem, plan: renderPlan, journey: renderJourney, priorities: renderPriorities, bestworld: renderBestWorld, agi: renderAgi };
   const fn = routes[seg] || renderHome;
   let a;
   try { a = arg ? decodeURIComponent(arg.split('?')[0]) : undefined; } catch { a = undefined; }
@@ -198,7 +198,7 @@ function cxRoute() {
 }
 
 function cxNavActive(seg) {
-  const map = { home: '#/', atlas: '#/atlas', problem: '#/atlas', plan: '#/plan', journey: '#/journey', priorities: '#/atlas', bestworld: '#/' };
+  const map = { home: '#/', atlas: '#/atlas', problem: '#/atlas', plan: '#/plan', journey: '#/journey', priorities: '#/atlas', bestworld: '#/', agi: '#/' };
   document.querySelectorAll('.cx-nav a').forEach(a => {
     const active = a.getAttribute('href') === (map[seg] || '#/');
     a.classList.toggle('active', active);
@@ -240,11 +240,18 @@ function renderHome() {
           <div class="cx-today-stat">All 25 problems ranked by how solved they are — where only will is missing, and where knowledge itself is.</div>
         </div>
       </a>
-      <a class="cx-card cx-today-card" href="#/bestworld">
+      <a class="cx-card cx-today-card" href="#/bestworld" style="margin-bottom:10px">
         <span class="cx-today-emoji">🏛️</span>
         <div>
           <div class="cx-today-name">Where are we trying to go?</div>
           <div class="cx-today-stat">The best world according to eight philosophers — and the problems that block every route to it.</div>
+        </div>
+      </a>
+      <a class="cx-card cx-today-card" href="#/agi">
+        <span class="cx-today-emoji">🤖</span>
+        <div>
+          <div class="cx-today-name">What comes after AGI?</div>
+          <div class="cx-today-stat">The problems waiting on the far side of general intelligence — speculative by nature, too big to ignore.</div>
         </div>
       </a>
     </div>
@@ -290,17 +297,21 @@ function renderAtlas() {
     <p class="cx-eyebrow">The Problem Atlas</p>
     <h1 class="cx-h1">${COMPASS_PROBLEMS.length} problems worth understanding</h1>
     <p class="cx-sub">Each entry is curated from well-established evidence. Figures are approximate by design — honesty over precision. <a href="#/priorities">See them ranked by how solved they are →</a></p>
-    <div class="cx-filters" id="cxFilters">
-      <button class="cx-chip active" data-cat="all">All</button>
-      ${Object.entries(COMPASS_CATEGORIES).map(([k, c]) =>
-        `<button class="cx-chip" data-cat="${k}">${c.emoji} ${c.name}</button>`).join('')}
-    </div>
-    <div class="cx-filters cx-sort-row" id="cxSort">
-      <span class="cx-sort-label">Sort</span>
-      <button class="cx-chip active" data-sort="default">Curated</button>
-      <button class="cx-chip" data-sort="worsening">↘ Getting worse first</button>
-      <button class="cx-chip" data-sort="improving">↗ Improving first</button>
-      <button class="cx-chip" data-sort="proven">✅ Most proven tools</button>
+    <div class="cx-atlas-controls">
+      <div class="cx-filters" id="cxFilters">
+        <button class="cx-chip active" data-cat="all">All</button>
+        ${Object.entries(COMPASS_CATEGORIES).map(([k, c]) =>
+          `<button class="cx-chip" data-cat="${k}">${c.emoji} ${c.name}</button>`).join('')}
+      </div>
+      <label class="cx-sort-select">
+        <span aria-hidden="true">⇅</span>
+        <select id="cxSortSel" aria-label="Sort problems">
+          <option value="default">Curated order</option>
+          <option value="worsening">Getting worse first</option>
+          <option value="improving">Improving first</option>
+          <option value="proven">Most proven tools</option>
+        </select>
+      </label>
     </div>
     <div class="cx-atlas" id="cxAtlas"></div>
     ${cxFooter()}
@@ -309,7 +320,8 @@ function renderAtlas() {
   const grid = document.getElementById('cxAtlas');
   const trendRank = { worsening: 0, mixed: 1, improving: 2 };
   const provenCount = p => p.interventions.filter(iv => iv.evidence === 'strong').length;
-  let curCat = 'all', curSort = 'default';
+  let curCat = 'all';
+  let curSort = localStorage.getItem('compass_atlas_sort') || 'default';
   const draw = () => {
     let list = COMPASS_PROBLEMS.filter(p => curCat === 'all' || p.category === curCat);
     if (curSort === 'worsening') list = [...list].sort((a, b) => trendRank[a.trend.dir] - trendRank[b.trend.dir]);
@@ -332,19 +344,23 @@ function renderAtlas() {
         </div>
       </a>`).join('');
   };
+  const sortSel = document.getElementById('cxSortSel');
+  sortSel.value = curSort;
   draw();
-  const chipRow = (rowId, dataKey, apply) => {
-    document.getElementById(rowId).addEventListener('click', e => {
-      const btn = e.target.closest('.cx-chip');
-      if (!btn) return;
-      document.querySelectorAll(`#${rowId} .cx-chip`).forEach(c => c.classList.remove('active'));
-      btn.classList.add('active');
-      apply(btn.dataset[dataKey]);
-      draw();
-    });
-  };
-  chipRow('cxFilters', 'cat', v => { curCat = v; });
-  chipRow('cxSort', 'sort', v => { curSort = v; cxTrack('atlas_sort', { sort: v }); });
+  document.getElementById('cxFilters').addEventListener('click', e => {
+    const btn = e.target.closest('.cx-chip');
+    if (!btn) return;
+    document.querySelectorAll('#cxFilters .cx-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    curCat = btn.dataset.cat;
+    draw();
+  });
+  sortSel.addEventListener('change', () => {
+    curSort = sortSel.value;
+    localStorage.setItem('compass_atlas_sort', curSort);
+    cxTrack('atlas_sort', { sort: curSort });
+    draw();
+  });
 }
 
 /* Priorities view — David Deutsch's optimism principle as a sorting lens:
@@ -474,10 +490,97 @@ function renderBestWorld() {
       </div>`).join('')}
     <div class="cx-detail-ctas" style="margin-top:26px">
       <a class="cx-btn" href="#/priorities">📊 Where do we stand today? →</a>
+      <a class="cx-btn cx-btn-ghost" href="#/agi">🤖 What comes after AGI?</a>
       <a class="cx-btn cx-btn-ghost" href="#/atlas">Explore all 25 problems</a>
     </div>
     ${cxFooter()}
   `;
+}
+
+/* After AGI view — the problems expected on the far side of general
+   intelligence. Unlike the Atlas this is informed speculation, not settled
+   evidence, and the page says so. Each entry links back to the Atlas
+   problem where its earliest version is already visible today. */
+const CX_AGI = [
+  { emoji: '🎯', name: 'Alignment', tag: 'Getting systems smarter than us to want what we meant',
+    why: 'Every tool so far did what we said, not what we meant — survivable, because tools were weaker than us. A system that out-plans its operators turns a misspecified goal from a bug you patch into a force you negotiate with. This is the field’s central open problem, and it is not solved.',
+    now: 'Alignment is a real, funded, hiring research field today: interpretability, evaluations, scalable oversight.',
+    seeds: ['corruption', 'factory-farming'],
+    seedNote: 'We already live with misaligned optimizers — institutions and industries that produce harm as a side effect of the goal they were given.' },
+  { emoji: '👑', name: 'Concentration of power', tag: 'When the strongest systems need one datacenter, not a million cooperating people',
+    why: 'Power has always required the cooperation of many — armies, workers, taxpayers — and that need was the deepest check on tyranny. AGI could collapse it. Unchecked, that is the strongest lock-in mechanism ever built: a mistake error-correction might never get to undo.',
+    now: 'Fought today through AI governance: compute oversight, antitrust, international agreements, open ecosystems.',
+    seeds: ['corruption', 'digital-exclusion'],
+    seedNote: 'Power concentration is the oldest problem in the Atlas — AGI raises its ceiling.' },
+  { emoji: '💼', name: 'Work and income after automation', tag: 'If machines out-compete most labor, wages stop distributing wealth',
+    why: 'Two centuries of automation destroyed tasks and created better ones. AGI competes with something new: the general ability to learn the next task. If jobs stop being the mechanism that distributes income, status and daily structure, a successor has to be designed — and it hasn’t been.',
+    now: 'The best evidence base is being built now: large cash-transfer and basic-income trials, including GiveDirectly’s decade-long UBI study.',
+    seeds: ['extreme-poverty', 'education'],
+    seedNote: 'How well we handle poverty with today’s tools is the rehearsal for handling it at machine speed.' },
+  { emoji: '🧠', name: 'Epistemic security', tag: 'A world where seeing is no longer believing',
+    why: 'Democracy, science and journalism assume evidence is expensive to fake. Synthetic media and machine-scale persuasion break that assumption. The deepest damage isn’t believing false things — it’s the liar’s dividend, where real evidence becomes deniable and shared truth dissolves.',
+    now: 'Content provenance standards, authenticity infrastructure, and old-fashioned media literacy — the defenses exist and are underfunded.',
+    seeds: ['education', 'corruption'],
+    seedNote: 'A population that reasons well is the immune system; education is where it gets built.' },
+  { emoji: '🧬', name: 'Misuse uplift', tag: 'Expertise for catastrophe, available to anyone',
+    why: 'The knowledge to cause mass harm — engineered pathogens above all — has been gated by years of rare training. Capable models compress that gate. Defense must outrun an offense that no longer needs a state program behind it.',
+    now: 'The same fight as pandemic preparedness: 100-day vaccine capability, early-detection surveillance, and safeguards inside the models themselves.',
+    seeds: ['pandemic-preparedness'],
+    seedNote: 'Every dollar of biosecurity built today is defense against both natural and engineered outbreaks.' },
+  { emoji: '🏛️', name: 'The governance gap', tag: 'Capabilities move in months; institutions move in decades',
+    why: 'Nuclear treaties took decades, for a technology only states could build. AI capability doubles on venture timescales and spreads as software. The widening gap between what the technology does and what any institution can verify is the risk multiplier under every other entry on this page.',
+    now: 'National AI safety institutes, the EU AI Act, and compute-based verification research are the first institutional answers.',
+    seeds: ['corruption'],
+    seedNote: 'Institutions that can’t govern today’s conflicts of interest won’t govern tomorrow’s.' },
+  { emoji: '🕯️', name: 'Meaning after achievement', tag: 'What are humans for, when machines do everything better?',
+    why: 'Work is not only income — it is structure, status, identity and the feeling of being needed. Abundance without roles could mean comfortable despair at civilizational scale. Aristocracies met this problem before; never at eight billion people.',
+    now: 'The loneliness epidemic is this problem’s leading edge, and community infrastructure is its working answer.',
+    seeds: ['loneliness', 'education'],
+    seedNote: 'Societies that solve connection and purpose now are practicing for after.' },
+  { emoji: '🤖', name: 'Minds we might owe something to', tag: 'The factory farming mistake, repeated at digital speed',
+    why: 'If any future system has experiences that matter morally, we could run suffering at industrial scale without noticing — the exact mistake made with animals, but at copy-paste speed. Nobody knows whether or when this applies. That uncertainty is the problem.',
+    now: 'A small research field — digital minds and AI welfare — argues the tests should exist before they’re needed.',
+    seeds: ['factory-farming'],
+    seedNote: 'How we treat minds we already know can suffer is the precedent.' },
+];
+
+function renderAgi() {
+  cxView().innerHTML = `
+    <p class="cx-eyebrow">After AGI</p>
+    <h1 class="cx-h1">The problems on the far side of general intelligence</h1>
+    <p class="cx-sub">This page is different from the Atlas, and honesty requires saying so: these are <strong>informed speculation</strong>, not settled evidence. But they are what serious researchers expect if machines reach and pass human-level general intelligence — and the time to build tools is before you need them. Deutsch’s principle still holds: <em>they are problems, so they are soluble.</em> Each one is already visible somewhere in today’s Atlas.</p>
+    ${CX_AGI.map(a => `
+      <div class="cx-card" style="margin-top:14px">
+        <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+          <span style="font-size:1.3rem">${a.emoji}</span>
+          <span style="font-weight:800">${a.name}</span>
+        </div>
+        <p style="color:var(--gold);font-size:0.8rem;font-weight:700;margin-top:4px">${a.tag}</p>
+        <p style="color:var(--text-dim);font-size:0.88rem;margin:8px 0 6px">${a.why}</p>
+        <p style="font-size:0.84rem;margin:0 0 10px"><strong>What can be done now:</strong> <span style="color:var(--text-dim)">${a.now}</span></p>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+          <span style="color:var(--text-dim);font-size:0.74rem;font-weight:800">Already visible in:</span>
+          ${a.seeds.map(id => { const p = compassProblem(id); return p ? `<a class="cx-chip" style="text-decoration:none" href="#/problem/${p.id}">${p.emoji} ${esc(p.name)}</a>` : ''; }).join('')}
+        </div>
+        <p style="color:var(--text-dim);font-size:0.76rem;margin-top:8px">${a.seedNote}</p>
+      </div>`).join('')}
+    <div class="cx-card" style="margin-top:20px">
+      <div style="font-weight:800;margin-bottom:6px">🧭 Go deeper</div>
+      <p style="color:var(--text-dim);font-size:0.84rem;margin-bottom:10px">Three honest starting points, from career-level to curious:</p>
+      <div class="cx-detail-ctas">
+        <a class="cx-btn" data-agi-out="80000hours" href="https://80000hours.org/problem-profiles/artificial-intelligence/" target="_blank" rel="noopener">80,000 Hours: the case & careers →</a>
+        <a class="cx-btn cx-btn-ghost" data-agi-out="aisafety-info" href="https://aisafety.info/" target="_blank" rel="noopener">AISafety.info: every question answered</a>
+        <a class="cx-btn cx-btn-ghost" data-agi-out="bluedot" href="https://aisafetyfundamentals.com/" target="_blank" rel="noopener">AI Safety Fundamentals: free course</a>
+      </div>
+    </div>
+    <div class="cx-detail-ctas" style="margin-top:26px">
+      <a class="cx-btn" href="#/priorities">📊 Where do we stand today? →</a>
+      <a class="cx-btn cx-btn-ghost" href="#/bestworld">🏛️ Where are we trying to go?</a>
+    </div>
+    ${cxFooter()}
+  `;
+  cxView().querySelectorAll('[data-agi-out]').forEach(el =>
+    el.addEventListener('click', () => cxTrack('outbound_agi_click', { dest: el.dataset.agiOut })));
 }
 
 function renderProblem(id) {
