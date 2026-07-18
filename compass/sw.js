@@ -1,5 +1,5 @@
 /* Impact Compass service worker — scoped to /compass/. */
-const CACHE_NAME = 'impact-compass-v33';
+const CACHE_NAME = 'impact-compass-v34';
 const OFFLINE_ASSETS = [
   './',
   './index.html',
@@ -15,7 +15,11 @@ const OFFLINE_ASSETS = [
 ];
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(OFFLINE_ASSETS)));
+  // cache:'reload' bypasses the HTTP cache, so the precache can never be
+  // filled with stale copies — the version this worker ships is the
+  // version its cache holds.
+  event.waitUntil(caches.open(CACHE_NAME).then(c =>
+    c.addAll(OFFLINE_ASSETS.map(u => new Request(u, { cache: 'reload' })))));
   self.skipWaiting();
 });
 

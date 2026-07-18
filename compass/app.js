@@ -1360,7 +1360,24 @@ document.addEventListener('DOMContentLoaded', () => {
   cxTouchStreak();
   cxRoute();
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {});
+    navigator.serviceWorker.register('./sw.js', { scope: './' }).then(reg => {
+      // Installed PWAs can live for days without a navigation, so also
+      // check for a new version whenever the app returns to the foreground.
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) reg.update().catch(() => {});
+      });
+    }).catch(() => {});
+    // When a new worker takes over (skipWaiting + claim), reload once so
+    // users get the new version immediately instead of on their next
+    // visit. hadController guards the very first install, where claim()
+    // also fires controllerchange but nothing stale is on screen.
+    const hadController = !!navigator.serviceWorker.controller;
+    let cxSwReloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!hadController || cxSwReloaded) return;
+      cxSwReloaded = true;
+      location.reload();
+    });
   }
   cxMaybeNudge();
 });
