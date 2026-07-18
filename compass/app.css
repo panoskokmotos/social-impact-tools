@@ -112,6 +112,24 @@ button { font-family: inherit; }
   body { padding-bottom: 84px; }
 }
 
+/* Lens strip — persistent row under the header surfacing the five views
+   that would otherwise only be discoverable from the Home screen. */
+.cx-subnav { border-bottom: 1px solid var(--border); background: var(--bg-raise); }
+.cx-subnav-inner {
+  max-width: 900px; margin: 0 auto; padding: 8px 18px;
+  display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.cx-subnav-inner::-webkit-scrollbar { display: none; }
+.cx-subnav a {
+  flex: none; padding: 5px 12px; border-radius: 99px;
+  font-size: 0.76rem; font-weight: 700; color: var(--text-dim);
+  border: 1px solid transparent; white-space: nowrap;
+  transition: color 0.14s, border-color 0.14s, background 0.14s;
+}
+.cx-subnav a:hover { color: var(--text); border-color: var(--border); }
+.cx-subnav a.active { color: var(--gold); background: var(--gold-soft); border-color: var(--gold); }
+
 .cx-main { max-width: 900px; margin: 0 auto; padding: 40px 24px 72px; }
 @media (max-width: 719px) { .cx-main { padding: 24px 18px 40px; } }
 

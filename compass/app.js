@@ -198,8 +198,8 @@ function cxRoute() {
 }
 
 function cxNavActive(seg) {
-  const map = { home: '#/', atlas: '#/atlas', problem: '#/atlas', plan: '#/plan', journey: '#/journey', priorities: '#/atlas', bestworld: '#/', agi: '#/', watchlist: '#/', ea: '#/' };
-  document.querySelectorAll('.cx-nav a').forEach(a => {
+  const map = { home: '#/', atlas: '#/atlas', problem: '#/atlas', plan: '#/plan', journey: '#/journey', priorities: '#/priorities', bestworld: '#/bestworld', agi: '#/agi', watchlist: '#/watchlist', ea: '#/ea' };
+  document.querySelectorAll('.cx-nav a, .cx-subnav a').forEach(a => {
     const active = a.getAttribute('href') === (map[seg] || '#/');
     a.classList.toggle('active', active);
     if (active) a.setAttribute('aria-current', 'page');
