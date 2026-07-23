@@ -127,3 +127,18 @@ precision (~770KB raw, ~150KB gzipped, lazy-loaded only when the map
 opens, not precached). Re-verify the regional facts against current
 WHO / World Bank / IHME framing when the yearly review happens. CX_GEO
 is extracted by build-pages.py, so edit it once in app.js.
+
+## The Timeline / long-view slider (compass/timeline.html + #/timeline)
+
+Rosling-style 1800→2100 slider over five metrics: extreme poverty, child
+mortality, literacy, life expectancy (all improving) and CO₂ (the honest
+counterweight that got worse). Data is CX_ERA in app.js — anchor points
+from well-established estimates (OWID, Gapminder, UN, World Bank, NOAA),
+interpolated between anchors, with each metric spanning exactly its real
+data range so nothing past the sources is fabricated. Everything past the
+present year (CX_ERA_PRESENT) renders dashed and labelled "Projection".
+Chart colors were validated with the dataviz skill's palette validator
+(gold/blue/green/violet/red — violet added as --violet to break the warm
+cluster; red↔amber failed the normal-vision floor). Not live data — the
+sources update yearly at best; a live-data version would need a backend
+feed. CX_ERA is extracted by build-pages.py; edit it once in app.js.

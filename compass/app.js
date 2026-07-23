@@ -179,7 +179,7 @@ function cxRoute() {
   cxTouchStreak(); // idempotent per day; installed PWAs resume for days without reloading
   const hash = location.hash.replace(/^#\/?/, '');
   const [seg, arg] = hash.split('/');
-  const routes = { '': renderHome, atlas: renderAtlas, problem: renderProblem, plan: renderPlan, journey: renderJourney, priorities: renderPriorities, bestworld: renderBestWorld, agi: renderAgi, watchlist: renderWatchlist, ea: renderEA, world: renderWorld };
+  const routes = { '': renderHome, atlas: renderAtlas, problem: renderProblem, plan: renderPlan, journey: renderJourney, priorities: renderPriorities, bestworld: renderBestWorld, agi: renderAgi, watchlist: renderWatchlist, ea: renderEA, world: renderWorld, timeline: renderTimeline };
   const fn = routes[seg] || renderHome;
   let a;
   try { a = arg ? decodeURIComponent(arg.split('?')[0]) : undefined; } catch { a = undefined; }
@@ -198,7 +198,7 @@ function cxRoute() {
 }
 
 function cxNavActive(seg) {
-  const map = { home: '#/', atlas: '#/atlas', problem: '#/atlas', plan: '#/plan', journey: '#/journey', priorities: '#/priorities', bestworld: '#/bestworld', agi: '#/agi', watchlist: '#/watchlist', ea: '#/ea', world: '#/world' };
+  const map = { home: '#/', atlas: '#/atlas', problem: '#/atlas', plan: '#/plan', journey: '#/journey', priorities: '#/priorities', bestworld: '#/bestworld', agi: '#/agi', watchlist: '#/watchlist', ea: '#/ea', world: '#/world', timeline: '#/timeline' };
   document.querySelectorAll('.cx-nav a, .cx-subnav a').forEach(a => {
     const active = a.getAttribute('href') === (map[seg] || '#/');
     a.classList.toggle('active', active);
@@ -239,6 +239,13 @@ function renderHome() {
           <div>
             <div class="cx-today-name">Where in the world?</div>
             <div class="cx-today-stat">An interactive map: pick a problem, see which regions it concentrates in and which way the trend is moving.</div>
+          </div>
+        </a>
+        <a class="cx-card cx-today-card" href="#/timeline">
+          <span class="cx-today-emoji">⏳</span>
+          <div>
+            <div class="cx-today-name">200 years in one slider</div>
+            <div class="cx-today-stat">Drag from 1800 to 2100 and watch poverty, child mortality and literacy move. The Rosling long view.</div>
           </div>
         </a>
         <a class="cx-card cx-today-card" href="#/priorities">
@@ -780,6 +787,222 @@ function renderEA() {
   `;
   cxView().querySelectorAll('[data-ea-out]').forEach(el =>
     el.addEventListener('click', () => cxTrack('outbound_ea_click', { dest: el.dataset.eaOut })));
+}
+
+/* Timeline view — the long view, Rosling-style: drag from 1800 to 2100 and
+   watch the metrics move. Historical values are well-established estimates
+   (Our World in Data, Gapminder, UN, World Bank), approximate by design and
+   interpolated between anchor points. Everything past the present year is
+   projection, drawn dashed and labelled, never dressed up as data. One
+   metric — CO₂ — is the honest counterweight: the thing that got worse. */
+const CX_ERA_PRESENT = 2024;
+const CX_ERA_SPAN = [1800, 2100];
+const CX_ERA = {
+  poverty: {
+    emoji: '🌾', name: 'In extreme poverty', unit: '%', better: 'down', color: '--gold',
+    yMin: 0, yMax: 100, atlas: 'extreme-poverty',
+    surprise: 'Most people guess this barely moved. It collapsed.',
+    hist: [[1800, 88], [1820, 84], [1900, 72], [1950, 58], [1981, 44], [1990, 38], [2000, 29], [2010, 16], [2015, 10], [2024, 9]],
+    proj: [[2024, 9], [2030, 7]],
+    source: 'Our World in Data (Moatsos), World Bank',
+  },
+  childmort: {
+    emoji: '👶', name: 'Children dying before age 5', unit: '%', better: 'down', color: '--blue',
+    yMin: 0, yMax: 50, atlas: 'child-mortality',
+    surprise: 'In 1800, nearly half of all children died. Today it is under one in twenty-five.',
+    hist: [[1800, 43], [1900, 36], [1950, 22], [1970, 14], [1990, 9.3], [2000, 7.6], [2010, 5.2], [2020, 3.9], [2024, 3.6]],
+    proj: [[2024, 3.6], [2030, 3.1]],
+    source: 'Gapminder, UN IGME',
+  },
+  literacy: {
+    emoji: '📖', name: 'Adults who can read', unit: '%', better: 'up', color: '--green',
+    yMin: 0, yMax: 100, atlas: 'education',
+    surprise: 'Two centuries ago, nine in ten adults could not read. Now nine in ten can.',
+    hist: [[1800, 11], [1820, 12], [1900, 21], [1950, 36], [1970, 56], [1990, 75], [2000, 81], [2020, 87], [2024, 87]],
+    proj: [[2024, 87], [2030, 90]],
+    source: 'Our World in Data, UNESCO',
+  },
+  lifeexp: {
+    emoji: '🎂', name: 'Global life expectancy', unit: ' yrs', better: 'up', color: '--violet',
+    yMin: 20, yMax: 90, atlas: 'child-mortality',
+    surprise: 'A person born in 1800 could expect about 30 years. A child born today, more than 70.',
+    hist: [[1800, 29], [1900, 32], [1950, 46], [1970, 58], [1990, 64], [2000, 67], [2013, 71], [2019, 73], [2021, 71], [2024, 73]],
+    proj: [[2024, 73], [2050, 77], [2100, 82]],
+    source: 'Our World in Data, UN WPP',
+  },
+  co2: {
+    emoji: '🏭', name: 'CO₂ in the atmosphere', unit: ' ppm', better: 'down', color: '--red',
+    yMin: 260, yMax: 500, atlas: 'climate-change',
+    surprise: 'This is the counterweight — the one thing on this page that got dramatically worse.',
+    hist: [[1800, 283], [1900, 296], [1950, 311], [1980, 339], [1990, 354], [2000, 369], [2010, 389], [2024, 422]],
+    proj: [[2024, 422], [2050, 475]],
+    projNote: 'The future here is a fork, not a line: current policies point up, deep cuts bend it back down. This one is still ours to decide.',
+    source: 'Ice cores + Mauna Loa (NOAA)',
+  },
+};
+
+function cxEraSeries(m) { return m.hist.concat(m.proj.slice(1)); }
+function cxEraRange(m) { const s = cxEraSeries(m); return [s[0][0], s[s.length - 1][0]]; }
+function cxEraInterp(m, year) {
+  const s = cxEraSeries(m);
+  if (year <= s[0][0]) return s[0][1];
+  if (year >= s[s.length - 1][0]) return s[s.length - 1][1];
+  for (let i = 1; i < s.length; i++) {
+    if (year <= s[i][0]) {
+      const [y0, v0] = s[i - 1], [y1, v1] = s[i];
+      return v0 + (v1 - v0) * (year - y0) / (y1 - y0);
+    }
+  }
+  return s[s.length - 1][1];
+}
+
+function renderTimeline() {
+  const keys = Object.keys(CX_ERA);
+  let curKey = 'childmort';
+  let curYear = CX_ERA_PRESENT;
+  let playing = null;
+
+  cxView().innerHTML = `
+    <p class="cx-eyebrow">The long view</p>
+    <h1 class="cx-h1">200 years, in one slider</h1>
+    <p class="cx-sub">Drag from 1800 to today, and on toward 2100. These are the trajectories Hans Rosling built <em>Factfulness</em> around: the changes so slow and so vast that the news never shows them. Figures are well-established historical estimates, approximate by design. Everything past ${CX_ERA_PRESENT} is <strong>projection, drawn dashed</strong> — a forecast, never fact.</p>
+    <div class="cx-era-pills" id="cxEraPills">
+      ${keys.map(k => `<button class="cx-era-pill" data-k="${k}"><span class="cx-era-dot" style="background:var(${CX_ERA[k].color})"></span>${CX_ERA[k].emoji} ${esc(CX_ERA[k].name)}</button>`).join('')}
+    </div>
+    <div id="cxEraReadout"></div>
+    <div id="cxEraChartWrap"></div>
+    <input type="range" class="cx-era-slider" id="cxEraSlider" min="${CX_ERA_SPAN[0]}" max="${CX_ERA_SPAN[1]}" step="1" value="${curYear}" aria-label="Year">
+    <div class="cx-era-scale" id="cxEraScale"></div>
+    <div class="cx-detail-ctas" style="margin-top:14px">
+      <button class="cx-btn cx-era-play" id="cxEraPlay">▶ Play</button>
+      <a class="cx-btn cx-btn-ghost" id="cxEraAtlas" href="#/atlas">Understand this problem →</a>
+    </div>
+    <p style="color:var(--text-dim);font-size:0.76rem;margin-top:18px">Sources vary by metric: Our World in Data, Gapminder, the UN, the World Bank and NOAA. Values between marked years are interpolated; exact levels (especially before 1950) are debated, but the shape of each trajectory is not. Nothing here is live data.</p>
+    ${cxFooter()}
+  `;
+
+  const chartWrap = document.getElementById('cxEraChartWrap');
+  const readout = document.getElementById('cxEraReadout');
+  const slider = document.getElementById('cxEraSlider');
+  const scale = document.getElementById('cxEraScale');
+  const atlasLink = document.getElementById('cxEraAtlas');
+
+  const W = 640, H = 300, PL = 44, PR = 16, PT = 16, PB = 30;
+  // Each metric spans exactly its own real data — no fabricated years past
+  // where the sources actually stop — so the marker always rides the line.
+  const rangeOf = () => cxEraRange(CX_ERA[curKey]);
+  const xOf = y => { const [a, z] = rangeOf(); return PL + (y - a) / (z - a) * (W - PL - PR); };
+  const yOf = (v, m) => PT + (1 - (v - m.yMin) / (m.yMax - m.yMin)) * (H - PT - PB);
+
+  const drawChart = () => {
+    const m = CX_ERA[curKey];
+    const [xa, xz] = rangeOf();
+    const col = `var(${m.color})`;
+    const pts = arr => arr.map(([y, v]) => `${xOf(y).toFixed(1)},${yOf(v, m).toFixed(1)}`).join(' ');
+    const histPts = pts(m.hist);
+    const projPts = pts(m.proj);
+    const areaBase = yOf(m.yMin, m).toFixed(1);
+    const areaPts = `${xOf(m.hist[0][0]).toFixed(1)},${areaBase} ${histPts} ${xOf(m.hist[m.hist.length - 1][0]).toFixed(1)},${areaBase}`;
+    // y gridlines: 3 ticks
+    const ticks = [m.yMin, (m.yMin + m.yMax) / 2, m.yMax];
+    const grid = ticks.map(t => {
+      const yy = yOf(t, m).toFixed(1);
+      const lab = m.unit.includes('ppm') ? Math.round(t) : (Number.isInteger(t) ? t : t.toFixed(0));
+      return `<line class="cx-era-grid" x1="${PL}" y1="${yy}" x2="${W - PR}" y2="${yy}"/><text class="cx-era-axis" x="${PL - 6}" y="${yy}" text-anchor="end" dominant-baseline="middle">${lab}</text>`;
+    }).join('');
+    const nowX = xOf(CX_ERA_PRESENT).toFixed(1);
+    const mv = cxEraInterp(m, curYear);
+    const mx = xOf(curYear).toFixed(1), my = yOf(mv, m).toFixed(1);
+    // x ticks: start, present, end, plus round centuries strictly inside
+    const xt = [xa, xz].concat([1900, 2000, 2050].filter(t => t > xa + 12 && t < xz - 12 && t !== CX_ERA_PRESENT));
+    const xticks = [...new Set(xt)].map(t =>
+      `<text class="cx-era-axis" x="${xOf(t).toFixed(1)}" y="${H - 8}" text-anchor="middle">${t}</text>`).join('');
+    chartWrap.innerHTML = `
+      <svg class="cx-era-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(m.name)} from ${CX_ERA_SPAN[0]} to ${CX_ERA_SPAN[1]}">
+        ${grid}${xticks}
+        <line class="cx-era-nowline" x1="${nowX}" y1="${PT}" x2="${nowX}" y2="${H - PB}"/>
+        <text class="cx-era-axis" x="${nowX}" y="${PT - 4}" text-anchor="middle" style="fill:var(--text-dim)">today</text>
+        <polygon class="cx-era-area" points="${areaPts}" style="fill:${col}"/>
+        <polyline class="cx-era-line" points="${histPts}" style="stroke:${col}"/>
+        <polyline class="cx-era-line proj" points="${projPts}" style="stroke:${col}"/>
+        <line class="cx-era-crosshair" x1="${mx}" y1="${PT}" x2="${mx}" y2="${H - PB}"/>
+        <circle class="cx-era-marker" cx="${mx}" cy="${my}" r="6" style="fill:${col}"/>
+      </svg>`;
+  };
+
+  const fmtVal = (m, v) => (m.unit.includes('ppm') ? Math.round(v) : (v >= 10 ? v.toFixed(0) : v.toFixed(1))) + m.unit;
+
+  const drawReadout = () => {
+    const m = CX_ERA[curKey];
+    const v = cxEraInterp(m, curYear);
+    const isProj = curYear > CX_ERA_PRESENT;
+    const start = m.hist[0], startV = start[1];
+    const dir = v < startV ? 'down' : 'up';
+    const goodNow = (m.better === 'down' && v < startV) || (m.better === 'up' && v > startV);
+    readout.innerHTML = `
+      <div class="cx-era-readout">
+        <span class="cx-era-year">${curYear}</span>
+        <span class="cx-era-val" style="color:var(${m.color})">${fmtVal(m, v)}</span>
+        ${isProj ? '<span class="cx-era-proj-tag">Projection</span>' : ''}
+      </div>
+      <p style="color:var(--text-dim);font-size:0.9rem;margin:0 0 4px">${esc(m.emoji + ' ' + m.name)} · ${dir === 'down' ? 'down' : 'up'} from ${fmtVal(m, startV)} in ${start[0]}
+        <span style="color:var(${goodNow ? '--green' : '--red'});font-weight:800">${goodNow ? '↘ the right way' : '↗ the wrong way'}</span></p>
+      ${curYear === CX_ERA_PRESENT && m.surprise ? `<p style="font-size:0.86rem;margin:6px 0 0"><strong>${esc(m.surprise)}</strong></p>` : ''}
+      ${isProj && m.projNote ? `<p style="color:var(--text-dim);font-size:0.82rem;margin:6px 0 0">🔀 ${esc(m.projNote)}</p>` : ''}`;
+  };
+
+  const refresh = () => { drawReadout(); drawChart(); };
+
+  // Point the slider and scale at the current metric's real data range,
+  // clamping the year into it (default to today when today is in range).
+  const applyRange = () => {
+    const [a, z] = rangeOf();
+    slider.min = a; slider.max = z;
+    curYear = Math.min(z, Math.max(a, curYear));
+    slider.value = curYear;
+    scale.innerHTML = `<span>${a}</span><span>today</span><span>${z}</span>`;
+  };
+
+  const setYear = (y) => { const [a, z] = rangeOf(); curYear = Math.min(z, Math.max(a, Math.round(y))); slider.value = curYear; refresh(); };
+  const stop = () => { if (playing) { clearInterval(playing); playing = null; document.getElementById('cxEraPlay').textContent = '▶ Play'; } };
+
+  slider.addEventListener('input', () => { stop(); curYear = +slider.value; refresh(); });
+
+  document.getElementById('cxEraPills').addEventListener('click', e => {
+    const btn = e.target.closest('.cx-era-pill');
+    if (!btn) return;
+    stop();
+    curKey = btn.dataset.k;
+    document.querySelectorAll('#cxEraPills .cx-era-pill').forEach(p => {
+      const on = p.dataset.k === curKey;
+      p.classList.toggle('active', on);
+      p.style.color = on ? `var(${CX_ERA[curKey].color})` : '';
+    });
+    atlasLink.href = `#/problem/${CX_ERA[curKey].atlas}`;
+    cxTrack('timeline_metric', { metric: curKey });
+    applyRange();
+    refresh();
+  });
+
+  document.getElementById('cxEraPlay').addEventListener('click', function () {
+    if (playing) { stop(); return; }
+    const [a, z] = rangeOf();
+    if (curYear >= z) setYear(a);
+    this.textContent = '⏸ Pause';
+    cxTrack('timeline_play', { metric: curKey });
+    playing = setInterval(() => {
+      const [, end] = rangeOf();
+      if (curYear >= end) { stop(); return; }
+      setYear(Math.min(end, curYear + 2));
+    }, 55);
+  });
+
+  // init
+  document.querySelector(`#cxEraPills .cx-era-pill[data-k="${curKey}"]`).classList.add('active');
+  document.querySelector(`#cxEraPills .cx-era-pill[data-k="${curKey}"]`).style.color = `var(${CX_ERA[curKey].color})`;
+  atlasLink.href = `#/problem/${CX_ERA[curKey].atlas}`;
+  applyRange();
+  refresh();
 }
 
 /* World view — where each problem concentrates, at the honest granularity
