@@ -250,6 +250,23 @@ button { font-family: inherit; }
 .cx-sort-select select:focus { outline: none; }
 .cx-sort-select::after { content: '▾'; color: var(--text-dim); margin-left: -16px; pointer-events: none; }
 .cx-proven-count { color: var(--text-dim); font-size: 0.72rem; font-weight: 800; }
+/* "Where you fit" calculator */
+.cx-calc-form { display: flex; flex-direction: column; gap: 14px; }
+.cx-calc-field { display: flex; flex-direction: column; gap: 6px; }
+.cx-calc-field > span { font-size: 0.8rem; font-weight: 700; color: var(--text-dim); }
+.cx-calc-inrow { display: flex; gap: 8px; }
+.cx-calc-form input, .cx-calc-form select { padding: 11px 13px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); font: inherit; font-weight: 700; }
+.cx-calc-form input { flex: 1; min-width: 0; }
+.cx-calc-form input:focus, .cx-calc-form select:focus { outline: none; border-color: var(--gold); }
+.cx-calc-bar { position: relative; height: 14px; border-radius: 99px; margin: 14px 0 4px; background: linear-gradient(90deg, var(--surface-2), var(--gold-soft)); overflow: hidden; }
+.cx-calc-fill { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 40%, transparent), var(--gold)); border-radius: 99px; }
+.cx-calc-marker { position: absolute; top: -3px; width: 3px; height: 20px; background: var(--text); border-radius: 2px; transform: translateX(-50%); }
+.cx-calc-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.cx-calc-stat { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 10px; text-align: center; }
+.cx-calc-num { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; color: var(--gold); }
+.cx-calc-lab { font-size: 0.72rem; color: var(--text-dim); font-weight: 700; margin-top: 3px; line-height: 1.3; }
+@media (max-width: 520px) { .cx-calc-stats { grid-template-columns: 1fr; } }
+
 /* Worldview quiz */
 .cx-quiz-opts { display: flex; flex-direction: column; gap: 8px; }
 .cx-quiz-opt { text-align: left; padding: 12px 15px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); font-size: 0.92rem; font-weight: 700; cursor: pointer; transition: border-color 0.14s, background 0.14s; }

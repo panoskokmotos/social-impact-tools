@@ -179,7 +179,7 @@ function cxRoute() {
   cxTouchStreak(); // idempotent per day; installed PWAs resume for days without reloading
   const hash = location.hash.replace(/^#\/?/, '');
   const [seg, arg] = hash.split('/');
-  const routes = { '': renderHome, atlas: renderAtlas, problem: renderProblem, plan: renderPlan, journey: renderJourney, priorities: renderPriorities, bestworld: renderBestWorld, agi: renderAgi, watchlist: renderWatchlist, ea: renderEA, world: renderWorld, timeline: renderTimeline, quiz: renderQuiz };
+  const routes = { '': renderHome, atlas: renderAtlas, problem: renderProblem, plan: renderPlan, journey: renderJourney, priorities: renderPriorities, bestworld: renderBestWorld, agi: renderAgi, watchlist: renderWatchlist, ea: renderEA, world: renderWorld, timeline: renderTimeline, quiz: renderQuiz, calculator: renderCalc };
   const fn = routes[seg] || renderHome;
   let a;
   try { a = arg ? decodeURIComponent(arg.split('?')[0]) : undefined; } catch { a = undefined; }
@@ -198,7 +198,7 @@ function cxRoute() {
 }
 
 function cxNavActive(seg) {
-  const map = { home: '#/', atlas: '#/atlas', problem: '#/atlas', plan: '#/plan', journey: '#/journey', priorities: '#/priorities', bestworld: '#/bestworld', agi: '#/agi', watchlist: '#/watchlist', ea: '#/ea', world: '#/world', timeline: '#/timeline', quiz: '#/quiz' };
+  const map = { home: '#/', atlas: '#/atlas', problem: '#/atlas', plan: '#/plan', journey: '#/journey', priorities: '#/priorities', bestworld: '#/bestworld', agi: '#/agi', watchlist: '#/watchlist', ea: '#/ea', world: '#/world', timeline: '#/timeline', quiz: '#/quiz', calculator: '#/calculator' };
   document.querySelectorAll('.cx-nav a, .cx-subnav a').forEach(a => {
     const active = a.getAttribute('href') === (map[seg] || '#/');
     a.classList.toggle('active', active);
@@ -253,6 +253,13 @@ function renderHome() {
           <div>
             <div class="cx-today-name">200 years in one slider</div>
             <div class="cx-today-stat">Drag from 1800 to 2100 and watch poverty, child mortality and literacy move. The Rosling long view.</div>
+          </div>
+        </a>
+        <a class="cx-card cx-today-card" href="#/calculator">
+          <span class="cx-today-emoji">💰</span>
+          <div>
+            <div class="cx-today-name">Where do you fit?</div>
+            <div class="cx-today-stat">You're almost certainly in the global top few percent. See where you sit, and what a tenth of it can do.</div>
           </div>
         </a>
         <a class="cx-card cx-today-card" href="#/priorities">
@@ -794,6 +801,109 @@ function renderEA() {
   `;
   cxView().querySelectorAll('[data-ea-out]').forEach(el =>
     el.addEventListener('click', () => cxTrack('outbound_ea_click', { dest: el.dataset.eaOut })));
+}
+
+/* "Where you fit in the world" — Rosling's Dollar Street idea as a calculator:
+   most people in rich countries have no idea they are globally rich. The
+   income-distribution anchors are approximate individual PPP figures from the
+   global distribution (World Bank / Our World in Data); the impact figures are
+   order-of-magnitude GiveWell estimates. Both are honestly flagged, and we
+   link to the rigorous version rather than pretend to out-do it. */
+const CX_DIST = [
+  [10, 650], [20, 1000], [30, 1500], [40, 2200], [50, 3000], [60, 4200],
+  [70, 6000], [80, 9500], [85, 13000], [90, 19000], [93, 26000], [95, 33000],
+  [97, 46000], [99, 75000], [99.9, 180000],
+];
+const CX_GLOBAL_MEDIAN = 3000; // int-$ PPP per person per year, approx
+const CX_FX = { USD: 1, EUR: 1.08, GBP: 1.27 };
+
+function cxIncomePercentile(usd) {
+  if (usd <= CX_DIST[0][1]) return Math.max(1, CX_DIST[0][0] * (usd / CX_DIST[0][1]));
+  for (let i = 1; i < CX_DIST.length; i++) {
+    if (usd <= CX_DIST[i][1]) {
+      const [p0, v0] = CX_DIST[i - 1], [p1, v1] = CX_DIST[i];
+      const t = (Math.log(usd) - Math.log(v0)) / (Math.log(v1) - Math.log(v0));
+      return p0 + (p1 - p0) * t;
+    }
+  }
+  return 99.95;
+}
+
+function renderCalc() {
+  cxView().innerHTML = `
+    <p class="cx-eyebrow">Where you fit</p>
+    <h1 class="cx-h1">You are probably richer than you think</h1>
+    <p class="cx-sub">Almost everyone in a wealthy country is, by global standards, near the very top — and almost no one feels it. Enter your income and see where you actually sit on the world’s ladder, and what a small share of it can honestly do. Figures are approximate and PPP-adjusted; this is a perspective tool, not a tax return.</p>
+    <div class="cx-card">
+      <div class="cx-calc-form">
+        <label class="cx-calc-field">
+          <span>Your annual income, after tax</span>
+          <div class="cx-calc-inrow">
+            <select id="cxCalcCur" aria-label="Currency">${Object.keys(CX_FX).map(c => `<option value="${c}">${c}</option>`).join('')}</select>
+            <input type="number" id="cxCalcInc" inputmode="numeric" placeholder="e.g. 35000" aria-label="Annual income">
+          </div>
+        </label>
+        <label class="cx-calc-field">
+          <span>People it supports (household size)</span>
+          <input type="number" id="cxCalcHh" value="1" min="1" max="20" aria-label="Household size">
+        </label>
+        <button class="cx-btn" id="cxCalcGo">See where I fit →</button>
+      </div>
+    </div>
+    <div id="cxCalcOut"></div>
+    <p style="color:var(--text-dim);font-size:0.76rem;margin-top:16px">Method: your income is divided across your household, converted to international dollars and compared with an approximate global income distribution (World Bank, Our World in Data). Impact figures are order-of-magnitude estimates from GiveWell. For a rigorous version, see <a href="https://www.givingwhatwecan.org/how-rich-am-i" target="_blank" rel="noopener" data-calc-out="gwwc">Giving What We Can’s How Rich Am I →</a></p>
+    ${cxFooter()}
+  `;
+
+  const out = document.getElementById('cxCalcOut');
+  const calc = () => {
+    const cur = document.getElementById('cxCalcCur').value;
+    const raw = parseFloat(document.getElementById('cxCalcInc').value);
+    const hh = Math.max(1, parseInt(document.getElementById('cxCalcHh').value, 10) || 1);
+    if (!raw || raw <= 0) { out.innerHTML = ''; return; }
+    const usdPerPerson = (raw / CX_FX[cur]) / hh;
+    const pct = cxIncomePercentile(usdPerPerson);
+    const richerThan = Math.min(99.9, pct);
+    const topPct = Math.max(0.1, 100 - pct);
+    const mult = usdPerPerson / CX_GLOBAL_MEDIAN;
+    const give = raw * 0.10; // 10% in their currency
+    const giveUsd = give / CX_FX[cur];
+    const nets = Math.round(giveUsd / 5);
+    const dewormed = Math.round(giveUsd / 1);
+    const lifeYears = giveUsd > 0 ? 5000 / giveUsd : Infinity;
+    const fmtMoney = n => Math.round(n).toLocaleString();
+    const topLabel = topPct < 1 ? topPct.toFixed(1) : Math.round(topPct);
+    cxTrack('calc_result', { top: topLabel });
+    out.innerHTML = `
+      <div class="cx-card" style="margin-top:14px;text-align:center;border-color:var(--gold)">
+        <p style="color:var(--text-dim);font-size:0.8rem;font-weight:800;text-transform:uppercase;letter-spacing:0.06em">You are in the richest</p>
+        <div style="font-size:3rem;font-weight:800;letter-spacing:-0.03em;color:var(--gold);line-height:1.05">${topLabel}%</div>
+        <p style="font-weight:700;margin-top:2px">of people on Earth</p>
+        <div class="cx-calc-bar"><div class="cx-calc-fill" style="width:${richerThan.toFixed(1)}%"></div><div class="cx-calc-marker" style="left:${richerThan.toFixed(1)}%"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text-dim);font-weight:700"><span>poorest</span><span>richest</span></div>
+        <p style="font-size:0.9rem;margin-top:12px">You earn about <strong>${mult >= 2 ? Math.round(mult) + '×' : mult.toFixed(1) + '×'}</strong> the global median income per person.</p>
+      </div>
+      <div class="cx-card" style="margin-top:12px">
+        <div style="font-weight:800;margin-bottom:8px">💛 What a tenth of it could honestly do</div>
+        <p style="color:var(--text-dim);font-size:0.88rem;margin:0 0 10px">Giving 10% — about <strong style="color:var(--text)">${cur} ${fmtMoney(give)}</strong> a year — could, at GiveWell’s estimates for the most effective charities, fund roughly:</p>
+        <div class="cx-calc-stats">
+          <div class="cx-calc-stat"><div class="cx-calc-num">${nets.toLocaleString()}</div><div class="cx-calc-lab">🛏️ anti-malaria bednets a year</div></div>
+          <div class="cx-calc-stat"><div class="cx-calc-num">${dewormed.toLocaleString()}</div><div class="cx-calc-lab">🪱 children dewormed a year</div></div>
+          <div class="cx-calc-stat"><div class="cx-calc-num">${lifeYears <= 1 ? '1+/yr' : '~' + Math.round(lifeYears) + ' yrs'}</div><div class="cx-calc-lab">🕯️ ${lifeYears <= 1 ? 'lives saved a year' : 'to save a life, sustained'}</div></div>
+        </div>
+        <p style="color:var(--text-dim);font-size:0.76rem;margin:10px 0 0">Order-of-magnitude estimates, not promises — but the point stands: a small share of a rich-world income goes an extraordinarily long way.</p>
+        <div class="cx-detail-ctas" style="margin-top:14px">
+          <a class="cx-btn" data-calc-out="givewell" href="https://www.givewell.org/" target="_blank" rel="noopener">Give where it works →</a>
+          <a class="cx-btn cx-btn-ghost" href="#/ea">🎯 Which problems most?</a>
+        </div>
+      </div>`;
+    out.querySelectorAll('[data-calc-out]').forEach(el =>
+      el.addEventListener('click', () => cxTrack('outbound_calc_click', { dest: el.dataset.calcOut })));
+  };
+  document.getElementById('cxCalcGo').addEventListener('click', calc);
+  document.getElementById('cxCalcInc').addEventListener('keydown', e => { if (e.key === 'Enter') calc(); });
+  cxView().querySelectorAll('[data-calc-out]').forEach(el =>
+    el.addEventListener('click', () => cxTrack('outbound_calc_click', { dest: el.dataset.calcOut })));
 }
 
 /* Worldview quiz — Rosling's core device: guess before you see. Almost every
