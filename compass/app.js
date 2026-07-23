@@ -179,7 +179,7 @@ function cxRoute() {
   cxTouchStreak(); // idempotent per day; installed PWAs resume for days without reloading
   const hash = location.hash.replace(/^#\/?/, '');
   const [seg, arg] = hash.split('/');
-  const routes = { '': renderHome, atlas: renderAtlas, problem: renderProblem, plan: renderPlan, journey: renderJourney, priorities: renderPriorities, bestworld: renderBestWorld, agi: renderAgi, watchlist: renderWatchlist, ea: renderEA, world: renderWorld, timeline: renderTimeline };
+  const routes = { '': renderHome, atlas: renderAtlas, problem: renderProblem, plan: renderPlan, journey: renderJourney, priorities: renderPriorities, bestworld: renderBestWorld, agi: renderAgi, watchlist: renderWatchlist, ea: renderEA, world: renderWorld, timeline: renderTimeline, quiz: renderQuiz };
   const fn = routes[seg] || renderHome;
   let a;
   try { a = arg ? decodeURIComponent(arg.split('?')[0]) : undefined; } catch { a = undefined; }
@@ -198,7 +198,7 @@ function cxRoute() {
 }
 
 function cxNavActive(seg) {
-  const map = { home: '#/', atlas: '#/atlas', problem: '#/atlas', plan: '#/plan', journey: '#/journey', priorities: '#/priorities', bestworld: '#/bestworld', agi: '#/agi', watchlist: '#/watchlist', ea: '#/ea', world: '#/world', timeline: '#/timeline' };
+  const map = { home: '#/', atlas: '#/atlas', problem: '#/atlas', plan: '#/plan', journey: '#/journey', priorities: '#/priorities', bestworld: '#/bestworld', agi: '#/agi', watchlist: '#/watchlist', ea: '#/ea', world: '#/world', timeline: '#/timeline', quiz: '#/quiz' };
   document.querySelectorAll('.cx-nav a, .cx-subnav a').forEach(a => {
     const active = a.getAttribute('href') === (map[seg] || '#/');
     a.classList.toggle('active', active);
@@ -234,6 +234,13 @@ function renderHome() {
     <div class="cx-today">
       <h2 class="cx-h2">Find your bearings</h2>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:10px">
+        <a class="cx-card cx-today-card" href="#/quiz">
+          <span class="cx-today-emoji">🧠</span>
+          <div>
+            <div class="cx-today-name">Is the world better than you think?</div>
+            <div class="cx-today-stat">Guess before you see. Twelve questions most people, and most experts, get worse than a chimp.</div>
+          </div>
+        </a>
         <a class="cx-card cx-today-card" href="#/world">
           <span class="cx-today-emoji">🗺️</span>
           <div>
@@ -787,6 +794,143 @@ function renderEA() {
   `;
   cxView().querySelectorAll('[data-ea-out]').forEach(el =>
     el.addEventListener('click', () => cxTrack('outbound_ea_click', { dest: el.dataset.eaOut })));
+}
+
+/* Worldview quiz — Rosling's core device: guess before you see. Almost every
+   answer is "better than people think", because the systematic bias is
+   pessimism; CO₂ is the honest exception, to prove the quiz isn't just
+   cheerleading. Every fact is a well-established figure, linked to where you
+   can dig in. */
+const CX_QUIZ = [
+  { q: 'In the last 20 years, the share of the world living in extreme poverty has…',
+    opts: ['Almost doubled', 'Stayed about the same', 'Almost halved'], answer: 'Almost halved',
+    fact: 'In 2000 about 29% of the world lived in extreme poverty. Today it is around 9% — one of the fastest improvements in human history.', link: 'extreme-poverty' },
+  { q: "How many of the world's one-year-olds are vaccinated against at least one disease?",
+    opts: ['About 2 in 10', 'About 5 in 10', 'About 8 in 10'], answer: 'About 8 in 10',
+    fact: 'About 86% of the world’s one-year-olds have had at least one vaccination — a quiet triumph most people badly underestimate.', link: 'child-mortality' },
+  { q: 'Since 1800, the share of children who die before their fifth birthday has gone from about…',
+    opts: ['1 in 5, to 1 in 10', 'Stayed near 1 in 3', 'Over 4 in 10, to under 1 in 25'], answer: 'Over 4 in 10, to under 1 in 25',
+    fact: 'In 1800 roughly 43% of children died before age five. Today it is under 4% worldwide.', link: 'child-mortality' },
+  { q: 'What is global average life expectancy today?',
+    opts: ['About 55 years', 'About 65 years', 'About 73 years'], answer: 'About 73 years',
+    fact: 'Global life expectancy is about 73 years, up from around 30 in 1800.', link: 'child-mortality' },
+  { q: 'Over the last 100 years, annual deaths from natural disasters have…',
+    opts: ['Roughly doubled', 'Stayed about the same', 'Fallen by more than half'], answer: 'Fallen by more than half',
+    fact: 'Deaths from natural disasters have fallen by roughly 75% or more over the last century — thanks to early warning and sturdier infrastructure — even as populations grew.', link: 'climate-change' },
+  { q: "What share of the world's adults can read?",
+    opts: ['About 60%', 'About 75%', 'About 87%'], answer: 'About 87%',
+    fact: 'About 87% of adults worldwide can read, up from around 10% two centuries ago.', link: 'education' },
+  { q: 'The number of people living in extreme poverty since 1990 has…',
+    opts: ['Risen', 'Stayed flat', 'Fallen by more than a billion'], answer: 'Fallen by more than a billion',
+    fact: 'It fell from about 1.9 billion in 1990 to under 700 million today — while world population grew by more than 2.5 billion.', link: 'extreme-poverty' },
+  { q: 'What share of the world has access to electricity today?',
+    opts: ['About 50%', 'About 70%', 'About 90%'], answer: 'About 90%',
+    fact: 'About 90% of the world now has electricity, up from around 71% in 1990.', link: 'digital-exclusion' },
+  { q: 'Compared with pre-industrial times, atmospheric CO₂ has…',
+    opts: ['Barely changed', 'Risen about 20%', 'Risen about 50%'], answer: 'Risen about 50%',
+    fact: 'CO₂ has risen from about 280 ppm before industrialisation to over 420 today — roughly a 50% increase. This is the one that genuinely got worse.', link: 'climate-change' },
+  { q: 'What share of primary-school-age girls are NOT in school worldwide?',
+    opts: ['About 40%', 'About 20%', 'Under 10%'], answer: 'Under 10%',
+    fact: 'More than 90% of primary-age girls are now in school, near parity with boys — though gaps remain in the poorest regions.', link: 'gender-inequality' },
+  { q: 'Since 1970, the share of people who are undernourished has…',
+    opts: ['Risen', 'Stayed the same', 'Fallen substantially'], answer: 'Fallen substantially',
+    fact: 'It fell from around 28% in 1970 to under 10%, though it has ticked back up recently with conflict and COVID.', link: 'hunger' },
+  { q: 'New HIV infections per year, since their 1990s peak, have…',
+    opts: ['Risen', 'Stayed the same', 'Fallen by more than half'], answer: 'Fallen by more than half',
+    fact: 'New HIV infections have fallen roughly 60% from their mid-1990s peak, thanks to treatment and prevention.', link: 'hiv-aids' },
+];
+
+function cxShuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+function renderQuiz() {
+  const qs = CX_QUIZ.map(q => ({ ...q, opts: cxShuffle(q.opts) }));
+  let idx = 0, score = 0, answered = false;
+
+  cxView().innerHTML = `
+    <p class="cx-eyebrow">Test yourself</p>
+    <h1 class="cx-h1">Is the world better or worse than you think?</h1>
+    <p class="cx-sub">Hans Rosling asked thousands of people simple questions about the world, and found they scored <em>worse than random</em> — because we systematically believe things are worse than they are. Guess first on each, then see the answer. No peeking: the guessing is the point.</p>
+    <div id="cxQuizBody"></div>
+    ${cxFooter()}
+  `;
+  const body = document.getElementById('cxQuizBody');
+
+  const drawQ = () => {
+    answered = false;
+    const q = qs[idx];
+    body.innerHTML = `
+      <div style="color:var(--text-dim);font-size:0.78rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Question ${idx + 1} of ${qs.length} · score ${score}</div>
+      <div class="cx-card">
+        <p style="font-weight:800;font-size:1.05rem;line-height:1.4;margin-bottom:14px">${esc(q.q)}</p>
+        <div class="cx-quiz-opts" id="cxQuizOpts">
+          ${q.opts.map(o => `<button class="cx-quiz-opt" data-o="${esc(o)}">${esc(o)}</button>`).join('')}
+        </div>
+        <div id="cxQuizReveal"></div>
+      </div>`;
+    document.getElementById('cxQuizOpts').addEventListener('click', e => {
+      const btn = e.target.closest('.cx-quiz-opt');
+      if (!btn || answered) return;
+      answered = true;
+      const chosen = btn.dataset.o;
+      const correct = chosen === q.answer;
+      if (correct) score++;
+      document.querySelectorAll('#cxQuizOpts .cx-quiz-opt').forEach(b => {
+        b.disabled = true;
+        if (b.dataset.o === q.answer) b.classList.add('right');
+        else if (b.dataset.o === chosen) b.classList.add('wrong');
+      });
+      cxTrack('quiz_answer', { q: idx, correct });
+      const p = compassProblem(q.link);
+      document.getElementById('cxQuizReveal').innerHTML = `
+        <div class="cx-quiz-reveal">
+          <p style="font-weight:800;margin-bottom:6px">${correct ? '✅ Right' : '❌ Not quite'}</p>
+          <p style="font-size:0.9rem;line-height:1.6;margin:0">${esc(q.fact)}</p>
+          ${p ? `<a href="#/problem/${p.id}" class="cx-quiz-link">${p.emoji} Understand ${esc(p.name)} →</a>` : ''}
+        </div>
+        <button class="cx-btn" id="cxQuizNext" style="margin-top:14px">${idx < qs.length - 1 ? 'Next question →' : 'See my score →'}</button>`;
+      document.getElementById('cxQuizNext').addEventListener('click', () => {
+        if (idx < qs.length - 1) { idx++; drawQ(); } else drawResult();
+      });
+    });
+  };
+
+  const drawResult = () => {
+    const pct = Math.round(score / qs.length * 100);
+    const beatChimp = pct > 33;
+    const shareUrl = `${CX_TOOLS_SITE}/compass/worldview-quiz.html`;
+    const shareText = `I scored ${score}/${qs.length} on the state of the world. Most people do worse than a chimp picking at random. Test yourself:`;
+    const enc = s => encodeURIComponent(s);
+    cxTrack('quiz_complete', { score, pct });
+    body.innerHTML = `
+      <div class="cx-card" style="text-align:center;border-color:var(--gold)">
+        <div style="font-size:3rem;font-weight:800;letter-spacing:-0.03em">${score}<span style="color:var(--text-dim);font-size:1.6rem">/${qs.length}</span></div>
+        <p style="font-weight:800;margin:4px 0 10px">${pct}% correct</p>
+        <p style="color:var(--text-dim);font-size:0.9rem;line-height:1.6;margin:0 auto;max-width:440px">
+          A chimpanzee picking answers at random scores about 33%. ${beatChimp
+            ? 'You beat the chimp — most well-educated people don’t, because the news trains us to expect the worst.'
+            : 'Like most people, you scored around or below random — not because you’re uninformed, but because the news systematically teaches us the world is worse than it is.'}
+          The truth is that on almost everything that can be measured, humanity is doing far better than we feel.</p>
+      </div>
+      <div class="cx-share-row" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px">
+        <a class="cx-chip" target="_blank" rel="noopener" data-net="x" href="https://twitter.com/intent/tweet?text=${enc(shareText)}&url=${enc(shareUrl + '?utm_source=share&utm_medium=quiz')}">𝕏 Share my score</a>
+        <a class="cx-chip" target="_blank" rel="noopener" data-net="whatsapp" href="https://wa.me/?text=${enc(shareText + ' ' + shareUrl + '?utm_source=share&utm_medium=quiz')}">💬 WhatsApp</a>
+        <a class="cx-chip" target="_blank" rel="noopener" data-net="linkedin" href="https://www.linkedin.com/sharing/share-offsite/?url=${enc(shareUrl + '?utm_source=share&utm_medium=quiz')}">in LinkedIn</a>
+      </div>
+      <div class="cx-detail-ctas" style="margin-top:18px">
+        <button class="cx-btn cx-btn-ghost" id="cxQuizRetry">↻ Try again</button>
+        <a class="cx-btn cx-btn-ghost" href="#/timeline">⏳ See 200 years of it</a>
+        <a class="cx-btn cx-btn-ghost" href="#/atlas">🗺️ Explore the problems</a>
+      </div>`;
+    body.querySelectorAll('.cx-chip[data-net]').forEach(a =>
+      a.addEventListener('click', () => cxTrack('share_click', { network: a.dataset.net, where: 'quiz' })));
+    document.getElementById('cxQuizRetry').addEventListener('click', () => { idx = 0; score = 0; drawQ(); });
+  };
+
+  drawQ();
 }
 
 /* Timeline view — the long view, Rosling-style: drag from 1800 to 2100 and
