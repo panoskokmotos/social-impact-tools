@@ -142,3 +142,24 @@ Chart colors were validated with the dataviz skill's palette validator
 cluster; red↔amber failed the normal-vision floor). Not live data — the
 sources update yearly at best; a live-data version would need a backend
 feed. CX_ERA is extracted by build-pages.py; edit it once in app.js.
+
+## Verifiability & the road to live data
+
+Three parts. (1) Every problem carries a "🔎 Explore & verify the data" link
+to Our World in Data's search for its topic — the search endpoint always
+resolves, so a truth link is never a dead end. The query map is CX_VERIFY_Q
+in app.js, extracted by build-pages.py (verify_url) so app + static never
+drift. (2) how-we-know.html (#/truth) is the provenance page: honesty over
+precision, full source list, where we say "we don't know", and the live-data
+roadmap; linked from every footer and every problem's sources line. (3)
+compass/live-data.json + .github/scripts/refresh-data.py + refresh-data.yml
+are the live-data scaffold: a monthly Action pulls the five Timeline headline
+figures from OWID and commits changes. NOT yet validated against live OWID
+(sandbox has no network) — the OWID slugs/columns in CONFIG are best-effort
+and the first manual Actions run will show in its log which parse and which
+need a tweak. The script is non-destructive (per-metric try/except, only
+writes on change, always exits 0), so nothing ships broken. The Timeline
+shows a freshness stamp from live-data.json; when source flips to "Our World
+in Data (auto-refreshed)" the stamp says "auto-refreshed". Final step, once a
+run validates the slugs: let the chart use the live latest values, not just
+the date.

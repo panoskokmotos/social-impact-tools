@@ -32,6 +32,19 @@ TREND_LABEL = {"improving": "↗ Improving", "worsening": "↘ Worsening", "mixe
 EVIDENCE_LABEL = {"strong": "Strong evidence", "promising": "Promising", "debated": "Debated"}
 OFFER_META = {"money": ("💶", "money"), "time": ("⏰", "time"), "skills": ("🛠️", "skills"), "voice": ("📣", "voice")}
 
+_VERIFY_Q = None
+
+
+def verify_url(pid: str, name: str) -> str:
+    """Our World in Data search link for a problem — the search endpoint always
+    resolves, so a verify link is never itself a dead end. Query map lives in
+    app.js (CX_VERIFY_Q) and is extracted so the two never drift."""
+    global _VERIFY_Q
+    if _VERIFY_Q is None:
+        _VERIFY_Q = load_app_arrays("CX_VERIFY_Q")["CX_VERIFY_Q"]
+    q = _VERIFY_Q.get(pid) or name or ""
+    return "https://ourworldindata.org/search?q=" + quote(q)
+
 
 def load_problems() -> tuple[list[dict], dict, dict]:
     dump = subprocess.run(
@@ -337,7 +350,9 @@ def page(p: dict, cats: dict, prev_p: dict, next_p: dict, analytics_html: str, d
       </div>
     </div>
 {email_capture('problem')}
-    <div class="cx-sources">Rough figures for context, drawing on: {esc(' · '.join(p['sources']))}. Approximations, not citations. Last reviewed {TODAY}.</div>
+    <div class="cx-sources">Rough figures for context, drawing on: {esc(' · '.join(p['sources']))}. Approximations, not citations. Last reviewed {TODAY}.
+      <a href="{verify_url(p['id'], p['name'])}" target="_blank" rel="noopener" class="cx-verify">🔎 Explore &amp; verify the data →</a>
+      <a href="../how-we-know.html" class="cx-verify">How we know</a></div>
 
     <details class="cx-card" style="margin-top:22px">
       <summary style="cursor:pointer;font-weight:800;font-size:0.86rem">📎 Embed this problem card on your site — free</summary>
@@ -805,6 +820,40 @@ def ea_page(problems: list[dict], analytics_html: str) -> str:
         og_image=f"{SITE}/compass/og/do-most-good.jpg")
 
 
+def truth_page(analytics_html: str) -> str:
+    """Static, indexable version of the provenance / commitment-to-truth page."""
+    body = """
+    <p class="cx-eyebrow">How we know</p>
+    <h1 class="cx-h1">The commitment to truth</h1>
+    <p class="cx-sub">This whole project rests on one bet: that understanding the world honestly is how we reduce its suffering. That only holds if the understanding is <em>true</em>. So here is how these figures are made, where they come from, and how you can check every one of them yourself.</p>
+    <div class="cx-card" style="margin-top:14px">
+      <div style="font-weight:800;margin-bottom:6px">🎯 Honesty over precision</div>
+      <p style="color:var(--text-dim);font-size:0.9rem;line-height:1.7;margin:0">Every number here is a rounded, honest approximation, not a citation. "Roughly 600,000 malaria deaths a year" is truer to the state of knowledge than a false-precise "618,347", because the real figure carries uncertainty a precise number hides. Where sources genuinely disagree, we say so. We would rather be roughly right than precisely wrong.</p>
+    </div>
+    <div class="cx-card" style="margin-top:12px">
+      <div style="font-weight:800;margin-bottom:6px">🔎 Everything is verifiable</div>
+      <p style="color:var(--text-dim);font-size:0.9rem;line-height:1.7;margin:0 0 8px">Each problem links straight to Our World in Data's charts for its topic, so you never have to take our word for it. The core figures draw on the same public sources researchers use:</p>
+      <p style="font-size:0.86rem;line-height:1.8;margin:0">Our World in Data · the World Bank · the World Health Organization · the UN (Population Division, IGME, UNESCO, UNHCR) · Gapminder · GiveWell and ACE for cost-effectiveness · NOAA for the climate record.</p>
+    </div>
+    <div class="cx-card" style="margin-top:12px">
+      <div style="font-weight:800;margin-bottom:6px">🧭 Where we are careful to say "we don't know"</div>
+      <p style="color:var(--text-dim);font-size:0.9rem;line-height:1.7;margin:0">Projections past today are drawn dashed and labelled as forecasts, never facts. Problems without honest data say so rather than inventing it. The <a href="after-agi.html">After AGI</a> page is explicitly informed speculation. The <a href="world.html">world map</a> shades by region, not fabricated country numbers. Refusing to overclaim is part of telling the truth.</p>
+    </div>
+    <div class="cx-card" style="margin-top:12px;border-color:var(--gold)">
+      <div style="font-weight:800;margin-bottom:6px">🛰️ The road to live data</div>
+      <p style="color:var(--text-dim);font-size:0.9rem;line-height:1.7;margin:0">Today these figures are reviewed and updated by hand. The next step is to have the headline numbers refresh themselves from Our World in Data on a schedule, with the date of the latest figure shown in the open. Truth isn't a state you reach once; it's a practice you keep. That work is underway.</p>
+    </div>
+    <div class="cx-detail-ctas" style="margin-top:18px">
+      <a class="cx-btn" href="p/">Explore the Atlas →</a>
+      <a class="cx-btn cx-btn-ghost" href="timeline.html">⏳ See the long record</a>
+    </div>"""
+    return _page_shell(
+        "How We Know — the Impact Compass Commitment to Truth",
+        "Where every figure comes from, why we round for honesty over false precision, how to verify each one on Our World in Data, and the road to live, self-updating data.",
+        f"{SITE}/compass/how-we-know.html", body, analytics_html,
+        og_image=f"{SITE}/compass/og/how-we-know.jpg")
+
+
 def calculator_page(analytics_html: str) -> str:
     """Static, indexable version of the 'where you fit' calculator. The live
     calculation is app-only; here the concept and the honest framing are text."""
@@ -942,7 +991,8 @@ def update_sitemap(problems: list[dict]) -> None:
          f"  <url><loc>{SITE}/compass/world.html</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>",
          f"  <url><loc>{SITE}/compass/timeline.html</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>",
          f"  <url><loc>{SITE}/compass/worldview-quiz.html</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>",
-         f"  <url><loc>{SITE}/compass/where-you-fit.html</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>"] +
+         f"  <url><loc>{SITE}/compass/where-you-fit.html</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>",
+         f"  <url><loc>{SITE}/compass/how-we-know.html</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>"] +
         [f"  <url><loc>{SITE}/compass/p/{p['id']}.html</loc><lastmod>{TODAY}</lastmod><changefreq>monthly</changefreq></url>"
          for p in problems])
     wrapped = f"  <!-- compass-pages:start (generated by compass/build-pages.py) -->\n{block}\n  <!-- compass-pages:end -->"
@@ -971,6 +1021,7 @@ def main() -> None:
     (COMPASS / "timeline.html").write_text(timeline_page(problems, a))
     (COMPASS / "worldview-quiz.html").write_text(quiz_page(problems, a))
     (COMPASS / "where-you-fit.html").write_text(calculator_page(a))
+    (COMPASS / "how-we-know.html").write_text(truth_page(a))
     update_sitemap(problems)
     print(f"generated {len(problems)} problem pages + index + priorities + best-world + after-agi + watchlist + do-most-good + world + timeline, sitemap updated")
 

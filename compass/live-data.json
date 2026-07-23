@@ -1,0 +1,12 @@
+{
+  "updated": "2026-07-23",
+  "source": "manual review",
+  "note": "Seeded from hand-reviewed figures. The refresh-data GitHub Action updates this automatically from Our World in Data; see .github/scripts/refresh-data.py.",
+  "metrics": {
+    "poverty": { "year": 2024, "value": 9 },
+    "childmort": { "year": 2024, "value": 3.6 },
+    "literacy": { "year": 2024, "value": 87 },
+    "lifeexp": { "year": 2024, "value": 73 },
+    "co2": { "year": 2024, "value": 422 }
+  }
+}

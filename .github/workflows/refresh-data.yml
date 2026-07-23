@@ -1,0 +1,33 @@
+# Refresh the Timeline's headline figures from Our World in Data once a month,
+# and commit compass/live-data.json when a value changed. The app is static and
+# offline-first, so the network fetch has to live here in CI. The script is
+# non-destructive: a moved slug or changed schema just skips that metric, so
+# this can never break the site. Run it by hand from the Actions tab the first
+# time to check the log and confirm the slugs still parse.
+name: Refresh live data
+on:
+  schedule:
+    - cron: '17 6 1 * *'   # 06:17 UTC on the 1st of each month
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pull latest figures from Our World in Data
+        run: python3 .github/scripts/refresh-data.py
+      - name: Commit if changed
+        run: |
+          if [ -n "$(git status --porcelain compass/live-data.json)" ]; then
+            git config user.name "impact-compass-bot"
+            git config user.email "noreply@users.noreply.github.com"
+            git add compass/live-data.json
+            git commit -m "Refresh live data from Our World in Data"
+            git push
+          else
+            echo "No change to live-data.json"
+          fi

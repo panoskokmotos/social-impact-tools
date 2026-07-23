@@ -250,6 +250,9 @@ button { font-family: inherit; }
 .cx-sort-select select:focus { outline: none; }
 .cx-sort-select::after { content: '▾'; color: var(--text-dim); margin-left: -16px; pointer-events: none; }
 .cx-proven-count { color: var(--text-dim); font-size: 0.72rem; font-weight: 800; }
+.cx-verify { display: inline-block; margin-top: 8px; margin-right: 14px; font-size: 0.78rem; font-weight: 700; color: var(--blue); }
+.cx-verify:hover { text-decoration: underline; }
+
 /* "Where you fit" calculator */
 .cx-calc-form { display: flex; flex-direction: column; gap: 14px; }
 .cx-calc-field { display: flex; flex-direction: column; gap: 6px; }

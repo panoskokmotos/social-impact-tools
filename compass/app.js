@@ -160,6 +160,24 @@ function md(text) {
   return esc(text).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
 }
 const TREND_LABEL = { improving: '↗ Improving', worsening: '↘ Worsening', mixed: '↔ Mixed' };
+
+/* Verifiability — every figure should be checkable. Each problem points at
+   Our World in Data's charts for its topic; the search endpoint always
+   resolves, so a "verify" link is never itself a dead end. */
+const CX_VERIFY_Q = {
+  'extreme-poverty': 'extreme poverty', 'malaria': 'malaria', 'child-mortality': 'child mortality',
+  'hunger': 'hunger undernourishment', 'unsafe-water': 'clean water sanitation', 'education': 'literacy education',
+  'loneliness': 'loneliness', 'homelessness': 'homelessness', 'refugees': 'refugees displacement',
+  'climate-change': 'CO2 emissions temperature', 'air-pollution': 'air pollution deaths', 'gender-inequality': 'gender inequality',
+  'factory-farming': 'animal welfare meat production', 'preventable-blindness': 'blindness vision loss',
+  'pandemic-preparedness': 'pandemics', 'tuberculosis': 'tuberculosis', 'lead-poisoning': 'lead exposure',
+  'maternal-mortality': 'maternal mortality', 'road-deaths': 'road deaths traffic', 'tobacco': 'smoking tobacco',
+  'hiv-aids': 'HIV AIDS', 'neglected-tropical-diseases': 'neglected tropical diseases', 'digital-exclusion': 'internet access',
+  'corruption': 'corruption', 'ocean-health': 'overfishing plastic ocean',
+};
+function cxVerifyUrl(id, name) {
+  return 'https://ourworldindata.org/search?q=' + encodeURIComponent(CX_VERIFY_Q[id] || name || '');
+}
 const EVIDENCE_LABEL = { strong: 'Strong evidence', promising: 'Promising', debated: 'Debated' };
 const OFFER_META = {
   money:  { emoji: '💶', label: 'Money' },
@@ -179,7 +197,7 @@ function cxRoute() {
   cxTouchStreak(); // idempotent per day; installed PWAs resume for days without reloading
   const hash = location.hash.replace(/^#\/?/, '');
   const [seg, arg] = hash.split('/');
-  const routes = { '': renderHome, atlas: renderAtlas, problem: renderProblem, plan: renderPlan, journey: renderJourney, priorities: renderPriorities, bestworld: renderBestWorld, agi: renderAgi, watchlist: renderWatchlist, ea: renderEA, world: renderWorld, timeline: renderTimeline, quiz: renderQuiz, calculator: renderCalc };
+  const routes = { '': renderHome, atlas: renderAtlas, problem: renderProblem, plan: renderPlan, journey: renderJourney, priorities: renderPriorities, bestworld: renderBestWorld, agi: renderAgi, watchlist: renderWatchlist, ea: renderEA, world: renderWorld, timeline: renderTimeline, quiz: renderQuiz, calculator: renderCalc, truth: renderTruth };
   const fn = routes[seg] || renderHome;
   let a;
   try { a = arg ? decodeURIComponent(arg.split('?')[0]) : undefined; } catch { a = undefined; }
@@ -198,7 +216,7 @@ function cxRoute() {
 }
 
 function cxNavActive(seg) {
-  const map = { home: '#/', atlas: '#/atlas', problem: '#/atlas', plan: '#/plan', journey: '#/journey', priorities: '#/priorities', bestworld: '#/bestworld', agi: '#/agi', watchlist: '#/watchlist', ea: '#/ea', world: '#/world', timeline: '#/timeline', quiz: '#/quiz', calculator: '#/calculator' };
+  const map = { home: '#/', atlas: '#/atlas', problem: '#/atlas', plan: '#/plan', journey: '#/journey', priorities: '#/priorities', bestworld: '#/bestworld', agi: '#/agi', watchlist: '#/watchlist', ea: '#/ea', world: '#/world', timeline: '#/timeline', quiz: '#/quiz', calculator: '#/calculator', truth: '#/truth' };
   document.querySelectorAll('.cx-nav a, .cx-subnav a').forEach(a => {
     const active = a.getAttribute('href') === (map[seg] || '#/');
     a.classList.toggle('active', active);
@@ -803,6 +821,42 @@ function renderEA() {
     el.addEventListener('click', () => cxTrack('outbound_ea_click', { dest: el.dataset.eaOut })));
 }
 
+/* Truth / provenance view — the commitment that underwrites everything else.
+   The mission is to increase knowledge and reduce suffering; that only works
+   if the knowledge is true, so this page says how we try to keep it true and
+   how anyone can check. */
+function renderTruth() {
+  cxView().innerHTML = `
+    <p class="cx-eyebrow">How we know</p>
+    <h1 class="cx-h1">The commitment to truth</h1>
+    <p class="cx-sub">This whole project rests on one bet: that understanding the world honestly is how we reduce its suffering. That only holds if the understanding is <em>true</em>. So here is how these figures are made, where they come from, and how you can check every one of them yourself.</p>
+
+    <div class="cx-card" style="margin-top:14px">
+      <div style="font-weight:800;margin-bottom:6px">🎯 Honesty over precision</div>
+      <p style="color:var(--text-dim);font-size:0.9rem;line-height:1.7;margin:0">Every number here is a rounded, honest approximation, not a citation. "Roughly 600,000 malaria deaths a year" is truer to the state of knowledge than a false-precise "618,347", because the real figure carries uncertainty that a precise number hides. Where sources genuinely disagree, we say so. We would rather be roughly right than precisely wrong.</p>
+    </div>
+    <div class="cx-card" style="margin-top:12px">
+      <div style="font-weight:800;margin-bottom:6px">🔎 Everything is verifiable</div>
+      <p style="color:var(--text-dim);font-size:0.9rem;line-height:1.7;margin:0 0 8px">Each problem links straight to Our World in Data's charts for its topic, so you never have to take our word for it. The core long-run figures draw on the same public sources researchers use:</p>
+      <p style="font-size:0.86rem;line-height:1.8;margin:0">Our World in Data · the World Bank · the World Health Organization · the UN (Population Division, IGME, UNESCO, UNHCR) · Gapminder · GiveWell and ACE for cost-effectiveness · NOAA for the climate record.</p>
+    </div>
+    <div class="cx-card" style="margin-top:12px">
+      <div style="font-weight:800;margin-bottom:6px">🧭 Where we are careful to say "we don't know"</div>
+      <p style="color:var(--text-dim);font-size:0.9rem;line-height:1.7;margin:0">Projections past today are drawn dashed and labelled as forecasts, never facts. Problems without honest data say so rather than inventing it. The <a href="#/agi">After AGI</a> page is explicitly informed speculation. The <a href="#/world">world map</a> shades by region, not fabricated country numbers. Refusing to overclaim is part of telling the truth.</p>
+    </div>
+    <div class="cx-card" style="margin-top:12px;border-color:var(--gold)">
+      <div style="font-weight:800;margin-bottom:6px">🛰️ The road to live data</div>
+      <p style="color:var(--text-dim);font-size:0.9rem;line-height:1.7;margin:0">Today these figures are reviewed and updated by hand. The next step is to have the headline numbers refresh themselves from Our World in Data on a schedule, with the date of the latest figure shown in the open. Truth isn't a state you reach once; it's a practice you keep. That work is underway.</p>
+    </div>
+    <p style="color:var(--text-dim);font-size:0.82rem;margin-top:16px">Found something that looks wrong? That's the most useful thing you can send. Tell <a href="https://panoskokmotos.com" target="_blank" rel="noopener">Panos</a>, and it gets fixed.</p>
+    <div class="cx-detail-ctas" style="margin-top:14px">
+      <a class="cx-btn" href="#/atlas">Explore the Atlas →</a>
+      <a class="cx-btn cx-btn-ghost" href="#/timeline">⏳ See the long record</a>
+    </div>
+    ${cxFooter()}
+  `;
+}
+
 /* "Where you fit in the world" — Rosling's Dollar Street idea as a calculator:
    most people in rich countries have no idea they are globally rich. The
    income-distribution anchors are approximate individual PPP figures from the
@@ -1131,7 +1185,7 @@ function renderTimeline() {
       <button class="cx-btn cx-era-play" id="cxEraPlay">▶ Play</button>
       <a class="cx-btn cx-btn-ghost" id="cxEraAtlas" href="#/atlas">Understand this problem →</a>
     </div>
-    <p style="color:var(--text-dim);font-size:0.76rem;margin-top:18px">Sources vary by metric: Our World in Data, Gapminder, the UN, the World Bank and NOAA. Values between marked years are interpolated; exact levels (especially before 1950) are debated, but the shape of each trajectory is not. Nothing here is live data.</p>
+    <p style="color:var(--text-dim);font-size:0.76rem;margin-top:18px">Sources vary by metric: Our World in Data, Gapminder, the UN, the World Bank and NOAA. Values between marked years are interpolated; exact levels (especially before 1950) are debated, but the shape of each trajectory is not. <span id="cxLiveStamp"></span> <a href="#/truth">How we know →</a></p>
     ${cxFooter()}
   `;
 
@@ -1257,6 +1311,15 @@ function renderTimeline() {
   atlasLink.href = `#/problem/${CX_ERA[curKey].atlas}`;
   applyRange();
   refresh();
+
+  // Freshness stamp — reads the data file the refresh workflow keeps current.
+  fetch('./live-data.json').then(r => r.json()).then(d => {
+    const el = document.getElementById('cxLiveStamp');
+    if (el && d && d.updated) {
+      const auto = /world in data/i.test(d.source || '');
+      el.textContent = `${auto ? '🛰️ Latest figures auto-refreshed' : '🔎 Latest figures reviewed'} ${d.updated}.`;
+    }
+  }).catch(() => {});
 }
 
 /* World view — where each problem concentrates, at the honest granularity
@@ -1534,7 +1597,9 @@ function renderProblem(id) {
       </div>
     </div>
 
-    <div class="cx-sources">Rough figures for context, drawing on: ${p.sources.map(esc).join(' · ')}. Approximations, not citations.</div>
+    <div class="cx-sources">Rough figures for context, drawing on: ${p.sources.map(esc).join(' · ')}. Approximations, not citations.
+      <a href="${cxVerifyUrl(p.id, p.name)}" target="_blank" rel="noopener" class="cx-verify" data-verify="${p.id}">🔎 Explore &amp; verify the data →</a>
+      <a href="#/truth" class="cx-verify">How we know</a></div>
     ${cxFooter()}
   `;
 
@@ -1617,6 +1682,9 @@ function renderProblem(id) {
     const a = e.target.closest('a[data-donow]');
     if (a) cxTrack('outbound_donow_click', { problem: p.id, org: a.dataset.donow });
   });
+
+  cxView().querySelectorAll('[data-verify]').forEach(el =>
+    el.addEventListener('click', () => cxTrack('verify_click', { problem: el.dataset.verify })));
 
   initProblemChat(p);
 }
@@ -2000,7 +2068,7 @@ function cxWireDailyDelivery() {
 }
 
 function cxFooter() {
-  return `<div class="cx-footer">Impact Compass · built by <a href="https://panoskokmotos.com" target="_blank" rel="noopener">Panos Kokmotos</a> · sibling of the <a href="${CX_TOOLS_SITE}/" target="_blank" rel="noopener">AI for Social Impact tools</a> and <a href="https://givelink.app/en" target="_blank" rel="noopener">Givelink</a> · powered by Claude AI<br>Figures are honest approximations from public sources — verify before citing.</div>`;
+  return `<div class="cx-footer">Impact Compass · built by <a href="https://panoskokmotos.com" target="_blank" rel="noopener">Panos Kokmotos</a> · sibling of the <a href="${CX_TOOLS_SITE}/" target="_blank" rel="noopener">AI for Social Impact tools</a> and <a href="https://givelink.app/en" target="_blank" rel="noopener">Givelink</a> · powered by Claude AI<br>Figures are honest approximations from public sources — <a href="#/truth">how we know</a>.</div>`;
 }
 
 /* ── Boot ───────────────────────────────────────────── */
