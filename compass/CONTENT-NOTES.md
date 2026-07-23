@@ -114,3 +114,16 @@ Sync discipline: `CX_RISING` and `CX_EA` live only in app.js —
 build-pages.py extracts them automatically, so edit once. `VISIONS`
 postcards and `AGI_ITEMS` are hand-synced between app.js and
 build-pages.py; change both or the app and static pages drift.
+
+## The World map (compass/world.html + #/world)
+
+A regional choropleth of all 25 problems. Deliberately regional, not
+per-country: `CX_GEO` in app.js holds 0–3 intensity buckets per world
+region plus one honest fact per problem (the line the shading stands in
+for), and universal problems are flagged rather than fake-localized.
+The geometry is `compass/world-map.json` — 228 countries grouped into 7
+regions, generated once from the npm package @svg-maps/world at 1-decimal
+precision (~770KB raw, ~150KB gzipped, lazy-loaded only when the map
+opens, not precached). Re-verify the regional facts against current
+WHO / World Bank / IHME framing when the yearly review happens. CX_GEO
+is extracted by build-pages.py, so edit it once in app.js.

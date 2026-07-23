@@ -179,7 +179,7 @@ function cxRoute() {
   cxTouchStreak(); // idempotent per day; installed PWAs resume for days without reloading
   const hash = location.hash.replace(/^#\/?/, '');
   const [seg, arg] = hash.split('/');
-  const routes = { '': renderHome, atlas: renderAtlas, problem: renderProblem, plan: renderPlan, journey: renderJourney, priorities: renderPriorities, bestworld: renderBestWorld, agi: renderAgi, watchlist: renderWatchlist, ea: renderEA };
+  const routes = { '': renderHome, atlas: renderAtlas, problem: renderProblem, plan: renderPlan, journey: renderJourney, priorities: renderPriorities, bestworld: renderBestWorld, agi: renderAgi, watchlist: renderWatchlist, ea: renderEA, world: renderWorld };
   const fn = routes[seg] || renderHome;
   let a;
   try { a = arg ? decodeURIComponent(arg.split('?')[0]) : undefined; } catch { a = undefined; }
@@ -198,7 +198,7 @@ function cxRoute() {
 }
 
 function cxNavActive(seg) {
-  const map = { home: '#/', atlas: '#/atlas', problem: '#/atlas', plan: '#/plan', journey: '#/journey', priorities: '#/priorities', bestworld: '#/bestworld', agi: '#/agi', watchlist: '#/watchlist', ea: '#/ea' };
+  const map = { home: '#/', atlas: '#/atlas', problem: '#/atlas', plan: '#/plan', journey: '#/journey', priorities: '#/priorities', bestworld: '#/bestworld', agi: '#/agi', watchlist: '#/watchlist', ea: '#/ea', world: '#/world' };
   document.querySelectorAll('.cx-nav a, .cx-subnav a').forEach(a => {
     const active = a.getAttribute('href') === (map[seg] || '#/');
     a.classList.toggle('active', active);
@@ -234,6 +234,13 @@ function renderHome() {
     <div class="cx-today">
       <h2 class="cx-h2">Find your bearings</h2>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:10px">
+        <a class="cx-card cx-today-card" href="#/world">
+          <span class="cx-today-emoji">🗺️</span>
+          <div>
+            <div class="cx-today-name">Where in the world?</div>
+            <div class="cx-today-stat">An interactive map: pick a problem, see which regions it concentrates in and which way the trend is moving.</div>
+          </div>
+        </a>
         <a class="cx-card cx-today-card" href="#/priorities">
           <span class="cx-today-emoji">📊</span>
           <div>
@@ -773,6 +780,171 @@ function renderEA() {
   `;
   cxView().querySelectorAll('[data-ea-out]').forEach(el =>
     el.addEventListener('click', () => cxTrack('outbound_ea_click', { dest: el.dataset.eaOut })));
+}
+
+/* World view — where each problem concentrates, at the honest granularity
+   of world regions (not fabricated per-country numbers). Intensities are
+   0–3 buckets grounded in well-established regional facts, and each entry
+   carries the one honest line the shading is standing in for. Problems
+   that are genuinely universal say so rather than pretending to localize.
+   Inspired by Hans Rosling's Factfulness: pair "where" with "which way it's
+   trending", so the map never reads as static doom. */
+const CX_GEO = {
+  'extreme-poverty': { universal: false, fact: "Extreme poverty is now majority sub-Saharan African — the region holds around 60% of the world's extreme poor, a share that keeps rising as poverty falls almost everywhere else.", r: { ssa: 3, sas: 2, lac: 1, mena: 1, eap: 1 } },
+  'malaria': { universal: false, fact: "About 95% of malaria deaths are in sub-Saharan Africa, most of them children under five.", r: { ssa: 3, sas: 1, eap: 1, lac: 1 } },
+  'child-mortality': { universal: false, fact: "Sub-Saharan Africa and South Asia carry the great majority of under-five deaths, though both have fallen sharply since 1990.", r: { ssa: 3, sas: 2, mena: 1, lac: 1, eap: 1 } },
+  'hunger': { universal: false, fact: "Undernourishment concentrates in sub-Saharan Africa and South Asia, with conflict driving acute hunger across parts of the Middle East and the Sahel.", r: { ssa: 3, sas: 2, mena: 2, eap: 1, lac: 1 } },
+  'unsafe-water': { universal: false, fact: "The largest gaps in safe water and sanitation are in sub-Saharan Africa, followed by South Asia.", r: { ssa: 3, sas: 2, eap: 1, mena: 1, lac: 1 } },
+  'education': { universal: false, fact: "Learning poverty — being unable to read a simple text by age 10 — reaches its highest levels in sub-Saharan Africa and South Asia.", r: { ssa: 3, sas: 2, mena: 1, lac: 1, eap: 1 } },
+  'loneliness': { universal: true, fact: "Loneliness is genuinely global and rising — best measured in wealthy regions, but far from confined to them. This is a problem the map can't honestly localize.", r: { eca: 2, nam: 2, eap: 2, lac: 1, sas: 1, mena: 1, ssa: 1 } },
+  'homelessness': { universal: true, fact: "Homelessness exists in every region; its forms differ — visible street homelessness in rich cities, informal settlements elsewhere — and the data is patchy, so the map shows presence, not precision.", r: { nam: 2, eca: 2, lac: 2, ssa: 2, sas: 2, eap: 2, mena: 1 } },
+  'refugees': { universal: false, fact: "Forced displacement tracks conflict — the Middle East, sub-Saharan Africa, and, from Venezuela, Latin America — and most refugees are hosted by neighbouring low- and middle-income countries.", r: { mena: 3, ssa: 3, sas: 2, lac: 2, eca: 1, eap: 1 } },
+  'climate-change': { universal: false, fact: "Emissions come mostly from wealthy and fast-growing economies, but the sharpest impacts fall on South Asia, sub-Saharan Africa and low-lying coastal and Pacific nations that emitted least.", r: { sas: 3, ssa: 3, mena: 2, eap: 2, lac: 2, nam: 1, eca: 1 } },
+  'air-pollution': { universal: false, fact: "The deadliest air is in South Asia and parts of East Asia and the Middle East, where the world's most polluted cities are clustered.", r: { sas: 3, eap: 2, mena: 2, ssa: 2, lac: 1, eca: 1, nam: 1 } },
+  'gender-inequality': { universal: false, fact: "The widest gaps in economic and political participation are in the Middle East, North Africa and South Asia — though every region still has ground to cover.", r: { mena: 3, sas: 3, ssa: 2, eap: 1, lac: 1, eca: 1, nam: 1 } },
+  'factory-farming': { universal: false, fact: "Industrial animal agriculture is largest by volume in East Asia, North America and Europe, and expanding fastest across Latin America and Asia.", r: { eap: 3, nam: 2, eca: 2, lac: 2, sas: 1, mena: 1, ssa: 1 } },
+  'preventable-blindness': { universal: false, fact: "Most avoidable blindness — cataracts and trachoma — is in sub-Saharan Africa and South Asia, where surgery and treatment are scarcest.", r: { ssa: 3, sas: 3, eap: 1, mena: 1, lac: 1 } },
+  'pandemic-preparedness': { universal: true, fact: "Pandemic risk is global by definition — a pathogen anywhere is a threat everywhere — with emergence hotspots where dense human, livestock and wildlife contact overlap.", r: { eap: 2, ssa: 2, sas: 2, lac: 1, mena: 1, eca: 1, nam: 1 } },
+  'tuberculosis': { universal: false, fact: "Most TB is in South and East Asia, with sub-Saharan Africa carrying the heaviest toll relative to population.", r: { sas: 3, eap: 2, ssa: 2, mena: 1, lac: 1, eca: 1 } },
+  'lead-poisoning': { universal: false, fact: "The heaviest childhood lead exposure runs across South Asia, Africa and other low- and middle-income regions — from informal battery recycling, adulterated spices and old paint.", r: { sas: 3, ssa: 2, eap: 2, mena: 2, lac: 2, eca: 1, nam: 1 } },
+  'maternal-mortality': { universal: false, fact: "Roughly 70% of maternal deaths are in sub-Saharan Africa, followed by South Asia; nearly all are preventable with skilled care.", r: { ssa: 3, sas: 2, mena: 1, lac: 1, eap: 1 } },
+  'road-deaths': { universal: false, fact: "Road-death rates are highest in sub-Saharan Africa and across low- and middle-income countries, which bear over 90% of the toll with far fewer vehicles.", r: { ssa: 3, sas: 2, eap: 2, mena: 2, lac: 2, eca: 1, nam: 1 } },
+  'tobacco': { universal: false, fact: "Most of the world's smokers live in East and South Asia — China alone is about a third — with the epidemic shifting toward lower-income countries as richer ones quit.", r: { eap: 3, sas: 2, eca: 2, mena: 2, ssa: 1, lac: 1, nam: 1 } },
+  'hiv-aids': { universal: false, fact: "About two-thirds of people living with HIV are in sub-Saharan Africa, concentrated in the east and south of the continent.", r: { ssa: 3, lac: 1, sas: 1, eap: 1, mena: 1, eca: 1, nam: 1 } },
+  'neglected-tropical-diseases': { universal: false, fact: "NTDs cluster in the tropics — sub-Saharan Africa carries about 40% of the burden, with more across South and Southeast Asia and parts of Latin America.", r: { ssa: 3, sas: 2, eap: 2, lac: 1, mena: 1 } },
+  'digital-exclusion': { universal: false, fact: "The largest offline populations are in sub-Saharan Africa and South Asia — though connectivity is spreading here faster than almost any other trend on this map.", r: { ssa: 3, sas: 2, mena: 1, eap: 1, lac: 1 } },
+  'corruption': { universal: false, fact: "Public-sector corruption scores worst across much of sub-Saharan Africa, the Middle East, Central Asia and parts of Latin America — but grand corruption often routes through the wealthy financial centres that score 'clean'.", r: { ssa: 2, mena: 2, sas: 2, lac: 2, eap: 2, eca: 1 } },
+  'ocean-health': { universal: true, fact: "Ocean decline is a global-commons problem — warming and acidification are everywhere — while the largest plastic inputs come from fast-growing coastal economies in Asia.", r: { eap: 2, sas: 2, lac: 1, ssa: 1, mena: 1, nam: 1, eca: 1 } },
+};
+
+const CX_GEO_RAMP = ['#333a52', '#8a6d2e', '#cf9a34', '#f4bd4e']; // 0→3
+const CX_GEO_LABEL = ['Low / little data', 'Moderate', 'High', 'Most concentrated'];
+let cxWorldMapData = null; // cached fetch of world-map.json
+
+function cxRegionProblems(region) {
+  // Reverse lookup: problems weighing heaviest on a region, strongest first.
+  return Object.keys(CX_GEO)
+    .map(id => ({ id, w: CX_GEO[id].r[region] || 0 }))
+    .filter(x => x.w >= 2)
+    .sort((a, b) => b.w - a.w);
+}
+
+function renderWorld() {
+  const ids = Object.keys(CX_GEO);
+  const start = 'malaria';
+  cxView().innerHTML = `
+    <p class="cx-eyebrow">The world map</p>
+    <h1 class="cx-h1">Where in the world?</h1>
+    <p class="cx-sub">Pick a problem and see where it concentrates — shaded by world <strong>region</strong>, not by fabricated country numbers, and paired with which way the trend is moving. Some problems are genuinely universal and say so. Inspired by Hans Rosling's <em>Factfulness</em>: the point is not where things are bad, but where they are bad <em>and getting better</em>.</p>
+    <label class="cx-sort-select" style="margin-bottom:14px">
+      <span aria-hidden="true">🔎</span>
+      <select id="cxGeoSel" aria-label="Choose a problem to map">
+        ${ids.map(id => { const p = compassProblem(id); return p ? `<option value="${id}"${id === start ? ' selected' : ''}>${p.emoji} ${esc(p.name)}</option>` : ''; }).join('')}
+      </select>
+    </label>
+    <div class="cx-map-wrap">
+      <div class="cx-map-stage" id="cxMapStage"><div class="cx-map-loading">Loading map…</div></div>
+      <div class="cx-map-legend" id="cxMapLegend"></div>
+    </div>
+    <div id="cxGeoInfo"></div>
+    <div class="cx-detail-ctas" style="margin-top:24px">
+      <a class="cx-btn" href="#/priorities">📊 Ranked by how solved →</a>
+      <a class="cx-btn cx-btn-ghost" href="#/ea">🎯 Where to help most</a>
+    </div>
+    ${cxFooter()}
+  `;
+
+  const stage = document.getElementById('cxMapStage');
+  const legend = document.getElementById('cxMapLegend');
+  const info = document.getElementById('cxGeoInfo');
+  const sel = document.getElementById('cxGeoSel');
+
+  legend.innerHTML = CX_GEO_RAMP.map((c, i) =>
+    `<span class="cx-legend-item"><span class="cx-legend-swatch" style="background:${c}"></span>${CX_GEO_LABEL[i]}</span>`).join('');
+
+  const paint = () => {
+    const id = sel.value;
+    const geo = CX_GEO[id];
+    const p = compassProblem(id);
+    const svg = stage.querySelector('svg');
+    if (svg) {
+      svg.querySelectorAll('path[data-region]').forEach(path => {
+        const lvl = geo.r[path.dataset.region] || 0;
+        path.setAttribute('fill', CX_GEO_RAMP[lvl]);
+        path.classList.remove('cx-region-active');
+      });
+    }
+    const regionsHit = cxWorldMapData
+      ? Object.entries(cxWorldMapData.regions).map(([k, v]) => ({ k, name: v.name, lvl: geo.r[k] || 0 }))
+          .sort((a, b) => b.lvl - a.lvl)
+      : [];
+    info.innerHTML = `
+      <div class="cx-card" style="margin-top:14px">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+          <span style="font-size:1.3rem">${p.emoji}</span>
+          <span style="font-weight:800">${esc(p.name)}</span>
+          <span class="cx-badge cx-badge-${p.trend.dir}">${TREND_LABEL[p.trend.dir]}</span>
+          ${geo.universal ? '<span class="cx-badge" style="background:var(--surface-2);color:var(--text-dim)">🌍 Largely universal</span>' : ''}
+        </div>
+        <p style="font-size:0.9rem;line-height:1.6;margin:0 0 10px">${esc(geo.fact)}</p>
+        ${regionsHit.filter(r => r.lvl >= 1).length ? `<div style="display:flex;flex-wrap:wrap;gap:6px">${regionsHit.filter(r => r.lvl >= 1).map(r =>
+          `<span class="cx-itn ${r.lvl >= 3 ? 'hi' : ''}"><span class="cx-legend-swatch" style="background:${CX_GEO_RAMP[r.lvl]}"></span>${esc(r.name)}</span>`).join('')}</div>` : ''}
+        <a href="#/problem/${p.id}" class="cx-btn cx-btn-ghost" style="margin-top:12px">Understand ${esc(p.name)} →</a>
+      </div>`;
+  };
+
+  const showRegion = (region) => {
+    const svg = stage.querySelector('svg');
+    if (svg) svg.querySelectorAll('path[data-region]').forEach(path =>
+      path.classList.toggle('cx-region-active', path.dataset.region === region));
+    const name = cxWorldMapData.regions[region].name;
+    const probs = cxRegionProblems(region);
+    info.innerHTML = `
+      <div class="cx-card" style="margin-top:14px;border-color:var(--gold)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="font-size:1.2rem">📍</span><span style="font-weight:800">${esc(name)}</span>
+        </div>
+        <p style="color:var(--text-dim);font-size:0.85rem;margin:0 0 10px">The problems weighing heaviest here:</p>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          ${probs.map(x => { const p = compassProblem(x.id); return `
+            <a href="#/problem/${x.id}" class="cx-geo-row">
+              <span>${p.emoji} ${esc(p.name)}</span>
+              <span class="cx-badge cx-badge-${p.trend.dir}">${TREND_LABEL[p.trend.dir]}</span>
+            </a>`; }).join('')}
+        </div>
+        <button class="cx-btn cx-btn-ghost" id="cxGeoBack" style="margin-top:12px">← Back to the mapped problem</button>
+      </div>`;
+    document.getElementById('cxGeoBack').addEventListener('click', paint);
+    cxTrack('world_region_select', { region });
+  };
+
+  const buildSvg = () => {
+    const d = cxWorldMapData;
+    const paths = d.countries.map(c =>
+      `<path d="${c.d}" data-region="${c.r}" class="cx-region"></path>`).join('');
+    stage.innerHTML = `<svg viewBox="${d.viewBox}" class="cx-worldmap" role="img" aria-label="World map shaded by region">${paths}</svg>`;
+    const svg = stage.querySelector('svg');
+    svg.addEventListener('click', e => {
+      const path = e.target.closest('path[data-region]');
+      if (path) showRegion(path.dataset.region);
+    });
+    paint();
+  };
+
+  sel.addEventListener('change', () => { paint(); cxTrack('world_problem_select', { problem: sel.value }); });
+
+  if (cxWorldMapData) {
+    buildSvg();
+  } else {
+    fetch('./world-map.json').then(r => r.json()).then(data => {
+      cxWorldMapData = data;
+      // guard against the user having navigated away mid-fetch
+      if (document.getElementById('cxMapStage') === stage) buildSvg();
+    }).catch(() => {
+      stage.innerHTML = '<div class="cx-map-loading">The map could not load. The regional facts still work below.</div>';
+      paint();
+    });
+  }
 }
 
 function renderProblem(id) {
