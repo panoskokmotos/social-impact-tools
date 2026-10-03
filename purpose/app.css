@@ -174,3 +174,31 @@ details .log li { grid-template-columns: 100px 1fr; }
   .stats b { font-size: 1.4rem; }
 }
 @media (prefers-reduced-motion: reduce) { #toast { transition: none; } }
+
+/* ---------- Conduct ---------- */
+.hero.slim { padding-top: 16px; }
+.explorer { border-color: var(--gold); background: linear-gradient(135deg, var(--surface), var(--accent-soft)); }
+.explorer h2 { font-size: 1.35rem; }
+.northstar { border-left: 4px solid var(--gold); }
+select { width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.btn.small { min-height: 36px; padding: 6px 14px; font-size: .9rem; }
+.builds { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 8px; }
+.builds li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+.stages { display: flex; gap: 6px; padding: 0; margin: 8px 0 16px; list-style: none; flex-wrap: wrap; }
+.stages li { flex: 1; min-width: 70px; text-align: center; font-size: .82rem; padding: 6px 4px; border-radius: 8px; background: var(--line); color: var(--muted); }
+.stages li.done { background: var(--accent-soft); color: var(--accent); }
+.stages li.now { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+.pill { font-family: ui-sans-serif, system-ui, sans-serif; font-size: .85rem; padding: 2px 10px; border-radius: 999px; background: var(--line); vertical-align: middle; }
+.ready .pill { background: var(--accent); color: var(--accent-ink); }
+.ready { border-color: var(--accent); }
+.orchestra.locked { opacity: .85; border-style: dashed; }
+.missing { color: var(--muted); }
+.roles .actions { margin-top: 8px; align-items: center; }
+.prompt-pre { white-space: pre-wrap; font-size: .82rem; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; max-height: 320px; overflow: auto; margin: 8px 0 0; }
+.critique { white-space: pre-wrap; margin-top: 10px; }
+.critique:empty { display: none; }
+@media (max-width: 520px) { .builds li { flex-direction: column; align-items: flex-start; } }
+.checklist.affirm input:checked + span { color: var(--ink); text-decoration: none; }
+.nav a { white-space: nowrap; }
+@media (max-width: 420px) { .nav a { padding: 6px 9px; font-size: .95rem; } .top { gap: 6px; } }
+main:focus-visible { outline: none; }

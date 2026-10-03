@@ -102,3 +102,66 @@ test('totalMinutes and weekStreak', () => {
   assert.equal(weekStreak([], now), 0);
   assert.equal(weekKey(new Date('2026-10-11T10:00:00')), '2026-10-05'); // Sunday → Monday
 });
+
+// ---------- Conduct ----------
+import { USEFULNESS, READY_AT, ROLES, STAGES } from './data.js';
+import { newExpedition, readiness, nextStage, rolePrompt, briefMarkdown, critiqueRequest } from './conduct.js';
+
+const reading = PROBLEMS.find((p) => p.id === 'learning-poverty');
+const ctx = { northStar: { statement: 'I teach so every child can read.', vision: 'every child reads by ten' }, problem: reading };
+
+test('data: every problem has build ideas; roles and stages are well-formed', () => {
+  for (const p of PROBLEMS) assert.ok(p.builds?.length >= 1, p.id);
+  assert.ok(READY_AT <= USEFULNESS.length);
+  assert.equal(new Set(ROLES.map((r) => r.id)).size, ROLES.length);
+  assert.equal(STAGES[0].id, 'chart');
+});
+
+test('readiness: needs what + for whom + enough honest checks', () => {
+  const x = newExpedition(reading, reading.builds[0], new Date('2026-10-03'));
+  assert.equal(x.stage, 'chart');
+  assert.equal(readiness(x).ready, false);
+  for (const u of USEFULNESS.slice(0, READY_AT)) x.checks[u.id] = true;
+  assert.equal(readiness(x).ready, false, 'still missing "for whom"');
+  assert.ok(readiness(x).missing.includes('Say who it is for.'));
+  x.forWhom = 'volunteer tutors';
+  assert.deepEqual([readiness(x).ready, readiness(x).score], [true, READY_AT]);
+  x.what = '   ';
+  assert.equal(readiness(x).ready, false);
+});
+
+test('nextStage advances and stops at the end', () => {
+  assert.equal(nextStage('chart'), 'conduct');
+  assert.equal(nextStage(STAGES.at(-1).id), STAGES.at(-1).id);
+});
+
+test('rolePrompt carries the North Star, the brief and role-specific work', () => {
+  const x = { ...newExpedition(reading, 'An offline phonics app'), forWhom: 'tutors', never: 'collect names' };
+  for (const role of ROLES) {
+    const p = rolePrompt(role.id, x, ctx);
+    assert.match(p, /NORTH STAR: I teach so every child can read\./);
+    assert.match(p, /WHAT SHOULD EXIST: An offline phonics app/);
+    assert.match(p, /IT MUST NEVER: collect names/);
+    assert.match(p, new RegExp(`You are the ${role.name}`));
+    assert.match(p, /\n1\. /);
+  }
+  assert.match(rolePrompt('critic', newExpedition(reading), ctx), /IT MUST NEVER: \(not specified — ask me\)/);
+  assert.throws(() => rolePrompt('nope', x, ctx));
+});
+
+test('briefMarkdown renders checks, stage and outcomes', () => {
+  const x = { ...newExpedition(reading, 'Tutor pack'), checks: { person: true }, stage: 'ship', outcomes: [{ date: '2026-10-03', text: '9 kids read a sentence' }] };
+  const md = briefMarkdown(x, ctx);
+  assert.match(md, /^# Tutor pack/);
+  assert.match(md, /\*\*Stage:\*\* Shipped/);
+  assert.match(md, /- \[x\] I can name a real person/);
+  assert.match(md, /- \[ \] I have talked to/);
+  assert.match(md, /## What changed\n- 2026-10-03: 9 kids read a sentence/);
+});
+
+test('critiqueRequest sends the brief only', () => {
+  const r = critiqueRequest({ ...newExpedition(reading, 'Tutor pack') }, ctx);
+  assert.match(r.systemPrompt, /usefulness/);
+  assert.match(r.userMessage, /WHAT SHOULD EXIST: Tutor pack/);
+  assert.doesNotMatch(r.userMessage, /minutes|reflection/i);
+});

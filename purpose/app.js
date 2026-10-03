@@ -1,10 +1,13 @@
 /**
  * app.js — hash-routed UI for Purpose. State lives in localStorage only;
- * nothing leaves the device.
+ * nothing leaves the device except when the user presses "Ask the Critic",
+ * which sends that one brief to the AI Worker.
  *
  * Routes: #/  #/discover  #/results  #/problems  #/problem/<id>  #/work
+ *         #/conduct  #/expedition/<id>
  */
-import { THEMES, VALUES, STRENGTHS, CAPACITY, PROMPTS, PROBLEMS } from './data.js';
+import { THEMES, VALUES, STRENGTHS, CAPACITY, PROMPTS, PROBLEMS, USEFULNESS, READY_AT, STAGES, ROLES } from './data.js';
+import { newExpedition, readiness, nextStage, rolePrompt, briefMarkdown, critiqueRequest } from './conduct.js';
 import {
   rankProblems, purposeStatement, buildPlan, totalMinutes, weekStreak, daysSince, themeScores,
 } from './engine.js';
@@ -27,9 +30,18 @@ let state = load();
 function load() {
   try {
     const s = JSON.parse(localStorage.getItem(KEY));
-    if (s && s.profile) return s;
+    if (s && s.profile) return upgrade(s);
   } catch { /* storage unavailable or corrupt — start fresh */ }
-  return { profile: emptyProfile(), step: 0, statement: '', project: null };
+  return fresh();
+}
+function fresh() {
+  return { profile: emptyProfile(), step: 0, statement: '', project: null, northStar: { vision: '' }, expeditions: [] };
+}
+// Older saves predate Conduct — fill in what's missing.
+function upgrade(s) {
+  s.northStar ||= { vision: '' };
+  s.expeditions ||= [];
+  return s;
 }
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* private mode: keep in memory */ }
@@ -44,9 +56,10 @@ const dots = (n) => '●'.repeat(n) + '○'.repeat(3 - n);
 // ---------- router ----------
 function route() {
   const [, name = '', arg] = location.hash.replace(/^#/, '').split('/');
-  const view = { '': home, discover, results, problems, problem, work }[name] || home;
+  const view = { '': home, discover, results, problems, problem, work, conduct, expedition }[name] || home;
   $('#app').innerHTML = view(arg);
-  document.querySelectorAll('.nav a').forEach((a) => a.classList.toggle('active', a.getAttribute('href') === `#/${name}`));
+  const navName = name === 'expedition' ? 'conduct' : name;
+  document.querySelectorAll('.nav a').forEach((a) => a.classList.toggle('active', a.getAttribute('href') === `#/${navName}`));
   bind[name]?.(arg);
   window.scrollTo(0, 0);
   $('#app').focus({ preventScroll: true });
@@ -73,7 +86,13 @@ function home() {
     <div><span>2</span><h3>Choose</h3><p>Get matched to real “purpose problems” — with the reasons, and the role you could play.</p></div>
     <div><span>3</span><h3>Work</h3><p>Missions sized to your life, a simple time log, weekly reflection and a 90-day check-in.</p></div>
   </section>
-  <p class="fine">Private by design: everything stays in this browser. No account, no tracking.</p>`;
+  <section class="card explorer">
+    <p class="eyebrow">Become an Explorer of Purpose</p>
+    <h2>Machines can increasingly do the building. Deciding what deserves to exist is yours.</h2>
+    <p>Set your North Star, choose what the world needs that doesn’t exist yet, test that it’s genuinely useful — then conduct a team of AI agents to build it. You’re the conductor of intelligence and the author of its meaning.</p>
+    <div class="actions"><a class="btn primary" href="#/conduct">Open Conduct</a></div>
+  </section>
+  <p class="fine">Private by design: everything stays in this browser. No account, no tracking. The only exception is the optional “Ask the Critic” button, which sends that one brief to an AI service.</p>`;
 }
 
 const STEPS = ['values', 'themes', 'strengths', 'answers', 'capacity'];
@@ -187,9 +206,98 @@ function problem(id) {
   <section class="card"><h3>Ways in, at every size</h3>
     ${['hour', 'month', 'year'].map((l) => `<h4>${LEVEL_NAMES[l]}</h4><ul>${p.missions[l].map((m) => `<li>${esc(m)}</li>`).join('')}</ul>`).join('')}
   </section>
+  <section class="card"><h3>What should exist — but mostly doesn’t</h3>
+    <p class="fine">Starting points for an Explorer. Chart one, or start blank.</p>
+    <ul class="builds">${p.builds.map((b, i) => `<li><span>${esc(b)}</span><button class="btn small" data-chart="${i}">Chart this</button></li>`).join('')}</ul>
+    <button class="link" data-chart="">Start a blank expedition →</button>
+  </section>
   <div class="actions center">
     ${isCurrent ? '<a class="btn primary" href="#/work">Go to my work</a>' : `<button class="btn primary" id="choose" data-id="${p.id}">Make this my purpose problem</button>`}
   </div>`;
+}
+
+// ---------- Conduct: the Explorer of Purpose ----------
+function conduct() {
+  const list = state.expeditions;
+  return `
+  <section class="hero slim">
+    <p class="eyebrow">Conduct</p>
+    <h1>Set the North Star. Decide what should exist. Conduct the build.</h1>
+    <p class="lead">You don’t do the grunt work of creation — AI agents increasingly can. Your work is direction, judgement and meaning: choosing what is worth building, for whom, and making sure it is genuinely useful.</p>
+  </section>
+  <section class="card northstar">
+    <p class="eyebrow">★ North Star</p>
+    <label class="field"><span>My purpose</span>
+      <textarea id="ns-statement" rows="2" placeholder="Do discovery to draft one, or write your own.">${esc(state.statement)}</textarea></label>
+    <label class="field"><span>In ten years, the world is different because…</span>
+      <textarea id="ns-vision" rows="2" placeholder="e.g. every child in my region can read by age ten">${esc(state.northStar.vision)}</textarea></label>
+  </section>
+  <h2 class="section-title">Expeditions</h2>
+  ${list.length ? `<div class="list">${list.slice().reverse().map((x) => {
+    const p = problemById(x.problemId); const r = readiness(x);
+    const st = STAGES.find((s) => s.id === x.stage);
+    return `<a class="row" href="#/expedition/${x.id}"><span class="emoji" aria-hidden="true">${p ? p.emoji : '✦'}</span>
+      <span><b>${esc(x.what || 'Untitled expedition')}</b><small>${esc(st.name)} · usefulness ${r.score}/${r.total}${p ? ` · ${esc(p.name)}` : ''}</small></span></a>`;
+  }).join('')}</div>` : '<p class="fine">No expeditions yet. Each one is a single thing you want to exist in the world.</p>'}
+  <section class="card">
+    <h3>Start an expedition</h3>
+    <label class="field"><span>For which problem?</span>
+      <select id="new-problem">${rankedForSelect().map((p) => `<option value="${p.id}" ${state.project?.problemId === p.id ? 'selected' : ''}>${p.emoji} ${esc(p.name)}</option>`).join('')}</select></label>
+    <div class="actions"><button class="btn primary" id="new-exp">Chart a new expedition</button></div>
+  </section>`;
+}
+
+function rankedForSelect() {
+  return hasProfile() ? rankProblems(state.profile).map((r) => r.problem) : PROBLEMS;
+}
+
+function expedition(id) {
+  const x = state.expeditions.find((e) => e.id === id);
+  if (!x) return `<section class="card"><h2>Expedition not found</h2><a href="#/conduct">Back to Conduct</a></section>`;
+  const p = problemById(x.problemId);
+  const r = readiness(x);
+  const field = (key, label, ph, rows = 2) => `<label class="field"><span>${label}</span>
+    <textarea data-field="${key}" rows="${rows}" placeholder="${esc(ph)}">${esc(x[key])}</textarea></label>`;
+  const stageIdx = STAGES.findIndex((s) => s.id === x.stage);
+  return `<a class="back" href="#/conduct">← Conduct</a>
+  <section class="card">
+    <p class="eyebrow">${p.emoji} ${esc(p.name)} · ★ ${esc(state.statement || 'Set your North Star in Conduct')}</p>
+    <ol class="stages">${STAGES.map((s, i) => `<li class="${i < stageIdx ? 'done' : i === stageIdx ? 'now' : ''}" title="${esc(s.hint)}">${esc(s.name)}</li>`).join('')}</ol>
+    ${field('what', 'What should exist?', 'One thing, specific enough that you’d recognise it. e.g. an offline phonics app for Grade 2 in Chichewa', 2)}
+    ${p.builds.length && !x.what ? `<p class="fine">Ideas: ${p.builds.map((b) => `<button class="link" data-idea="${esc(b)}">${esc(b)}</button>`).join(' · ')}</p>` : ''}
+    ${field('forWhom', 'Who is it for — specifically?', 'e.g. volunteer reading tutors in rural schools who have a phone but patchy data')}
+    ${field('change', 'What changes for them?', 'e.g. a child who can’t decode words is reading simple sentences after 10 sessions')}
+    ${field('measure', 'How will you know it helped?', 'e.g. words-per-minute before/after, from 20 children')}
+    ${field('never', 'What must it never do?', 'e.g. collect children’s names or voices; require an account; shame a slow reader')}
+  </section>
+  <section class="card ${r.ready ? 'ready' : ''}">
+    <h3>Usefulness test <span class="pill">${r.score}/${r.total}</span></h3>
+    <p class="fine">Usefulness is the point. Tick only what is honestly true — the orchestra waits until at least ${READY_AT} are.</p>
+    <ul class="checklist affirm">${USEFULNESS.map((u) => `<li><label><input type="checkbox" data-check="${u.id}" ${x.checks[u.id] ? 'checked' : ''}><span>${esc(u.q)}</span></label></li>`).join('')}</ul>
+    <div class="actions"><button class="btn" id="critic">🔍 Ask the Critic (AI)</button></div>
+    <p class="fine">Sends this brief (not your profile or logs) to an AI service for a quick critique.</p>
+    <div id="critique" class="critique" aria-live="polite"></div>
+  </section>
+  <section class="card orchestra ${r.ready ? '' : 'locked'}">
+    <h3>The orchestra</h3>
+    ${r.ready ? `<p class="fine">Each prompt carries your North Star and brief. Paste it into any capable AI agent, in this order. You decide; they build.</p>
+    <ul class="roles">${ROLES.map((role) => `<li><b>${role.emoji} ${esc(role.name)}</b><span>${esc(role.job)}</span>
+      <div class="actions"><button class="btn small" data-copy-role="${role.id}">Copy prompt</button><button class="link" data-show-role="${role.id}">Preview</button></div>
+      <pre class="prompt-pre" id="pre-${role.id}" hidden></pre></li>`).join('')}</ul>
+    <div class="actions"><button class="btn" id="copy-brief">Copy full brief (Markdown)</button><button class="btn" id="dl-brief">Download brief</button></div>`
+    : `<p>Not yet. First:</p><ul class="missing">${r.missing.slice(0, 3).map((m) => `<li>${esc(m)}</li>`).join('')}</ul>`}
+  </section>
+  <section class="card">
+    <h3>Stage</h3>
+    <p class="fine">${esc(STAGES[stageIdx].hint)}.</p>
+    <div class="actions">
+      ${stageIdx < STAGES.length - 1 ? `<button class="btn primary" id="advance" ${r.ready ? '' : 'disabled'}>Move to ${esc(STAGES[stageIdx + 1].name)}</button>` : ''}
+    </div>
+    ${stageIdx >= 2 ? `<h4>What changed for real people?</h4>
+    <form id="outcome" class="inline"><input name="text" placeholder="e.g. 14 kids used it; 9 read their first full sentence" required aria-label="Outcome"><button class="btn">Record</button></form>
+    ${x.outcomes.length ? `<ul class="log">${x.outcomes.slice().reverse().map((o) => `<li><time>${esc(o.date)}</time><span>${esc(o.text)}</span></li>`).join('')}</ul>` : ''}` : ''}
+  </section>
+  <div class="actions center"><button class="btn danger" id="del-exp">Delete expedition</button></div>`;
 }
 
 function work() {
@@ -241,6 +349,9 @@ function work() {
     ${pj.reflections.length ? `<details><summary>Past reflections (${pj.reflections.length})</summary><ul class="log">${pj.reflections.slice().reverse().map((r) => `
       <li><time>${esc(r.date)}</time><span><i>${esc(r.prompt)}</i><br>${esc(r.text)}</span></li>`).join('')}</ul></details>` : ''}
   </section>
+  <section class="card explorer"><h3>Ready to build something?</h3>
+    <p>Become an Explorer: decide what should exist for ${esc(p.name.toLowerCase())}, test its usefulness, and conduct AI agents to build it.</p>
+    <div class="actions"><a class="btn" href="#/conduct">Open Conduct</a></div></section>
   <section class="card"><h3>Your data</h3>
     <p class="fine">Everything lives in this browser. Export a backup or move it to another device.</p>
     <div class="actions">
@@ -295,7 +406,11 @@ const bind = {
       });
     });
   },
-  problem() {
+  problem(id) {
+    document.querySelectorAll('[data-chart]').forEach((b) => b.addEventListener('click', () => {
+      const p = problemById(id);
+      startExpedition(p, b.dataset.chart === '' ? '' : p.builds[Number(b.dataset.chart)]);
+    }));
     const btn = $('#choose'); if (!btn) return;
     btn.onclick = () => {
       if (state.project && !confirm('Switch your purpose problem? Your current project and its log are kept in your history (included in backups); missions start fresh.')) return;
@@ -344,15 +459,111 @@ const bind = {
       try {
         const data = JSON.parse(await file.text());
         if (!data || !data.profile) throw new Error('not a Purpose backup');
-        state = data; save(); route(); flash('Backup restored.');
+        state = upgrade(data); save(); route(); flash('Backup restored.');
       } catch (err) { flash(`Couldn’t import: ${err.message}`); }
     };
     $('#reset').onclick = () => {
       if (!confirm('Erase your profile, purpose statement and all logged work from this browser?')) return;
-      state = { profile: emptyProfile(), step: 0, statement: '', project: null }; save(); go('#/');
+      state = fresh(); save(); go('#/');
     };
   },
 };
+
+Object.assign(bind, {
+  conduct() {
+    $('#ns-statement').addEventListener('input', (e) => { state.statement = e.target.value; save(); });
+    $('#ns-vision').addEventListener('input', (e) => { state.northStar.vision = e.target.value; save(); });
+    $('#new-exp').onclick = () => startExpedition(problemById($('#new-problem').value), '');
+  },
+  expedition(id) {
+    const x = state.expeditions.find((e) => e.id === id); if (!x) return;
+    const ctx = () => ({ northStar: { statement: state.statement, vision: state.northStar.vision }, problem: problemById(x.problemId) });
+    // Text fields save as you type. Re-render only when readiness flips — a
+    // blanket re-render on blur would swallow a click made in the same motion.
+    const wasReady = readiness(x).ready;
+    document.querySelectorAll('[data-field]').forEach((ta) => {
+      ta.addEventListener('input', () => { x[ta.dataset.field] = ta.value; save(); });
+      ta.addEventListener('change', () => { if (readiness(x).ready !== wasReady) rerenderKeepScroll(); });
+    });
+    document.querySelectorAll('[data-idea]').forEach((b) => b.addEventListener('click', () => { x.what = b.dataset.idea; save(); rerenderKeepScroll(); }));
+    document.querySelectorAll('[data-check]').forEach((cb) => cb.addEventListener('change', () => {
+      x.checks[cb.dataset.check] = cb.checked; save(); rerenderKeepScroll();
+      if (readiness(x).ready && cb.checked) flash('The orchestra is ready.');
+    }));
+    document.querySelectorAll('[data-copy-role]').forEach((b) => b.addEventListener('click', () => copy(rolePrompt(b.dataset.copyRole, x, ctx()), `${b.dataset.copyRole} prompt copied.`)));
+    document.querySelectorAll('[data-show-role]').forEach((b) => b.addEventListener('click', () => {
+      const pre = $(`#pre-${b.dataset.showRole}`);
+      pre.textContent = rolePrompt(b.dataset.showRole, x, ctx()); pre.hidden = !pre.hidden;
+    }));
+    const cb = $('#copy-brief'); if (cb) cb.onclick = () => copy(briefMarkdown(x, ctx()), 'Brief copied.');
+    const dl = $('#dl-brief'); if (dl) dl.onclick = () => download(`${slug(x.what) || 'expedition'}.md`, briefMarkdown(x, ctx()), 'text/markdown');
+    const adv = $('#advance'); if (adv) adv.onclick = () => { x.stage = nextStage(x.stage); save(); rerenderKeepScroll(); };
+    const out = $('#outcome'); if (out) out.onsubmit = (e) => {
+      e.preventDefault(); const text = e.target.text.value.trim(); if (!text) return;
+      x.outcomes.push({ date: new Date().toISOString().slice(0, 10), text }); save(); rerenderKeepScroll();
+    };
+    $('#critic').onclick = async () => {
+      const box = $('#critique'); const btn = $('#critic');
+      if (!x.what.trim()) { flash('Say what should exist first.'); return; }
+      btn.disabled = true; box.textContent = 'The Critic is reading your brief…';
+      try {
+        const { systemPrompt, userMessage } = critiqueRequest(x, ctx());
+        const text = await askAI(systemPrompt, userMessage, (t) => { box.textContent = t; });
+        box.textContent = text;
+      } catch (err) {
+        box.textContent = aiErrorMessage(err);
+      } finally { btn.disabled = false; }
+    };
+    $('#del-exp').onclick = () => {
+      if (!confirm('Delete this expedition?')) return;
+      state.expeditions = state.expeditions.filter((e) => e.id !== id); save(); go('#/conduct');
+    };
+  },
+});
+
+function startExpedition(problem, what) {
+  const x = newExpedition(problem, what);
+  state.expeditions.push(x); save(); go(`#/expedition/${x.id}`);
+}
+function rerenderKeepScroll() { const y = window.scrollY; route(); window.scrollTo(0, y); }
+function slug(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 50); }
+async function copy(text, msg) {
+  try { await navigator.clipboard.writeText(text); flash(msg); }
+  catch { download('prompt.txt', text, 'text/plain'); flash('Clipboard blocked — downloaded instead.'); }
+}
+function download(name, text, type) {
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([text], { type })), download: name });
+  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+// ---------- optional AI (same Worker protocol as Impact Compass: stream, then JSON fallback) ----------
+const AI_BASE = 'https://ask-panos.panagiotis-kokmotoss.workers.dev';
+async function askAI(systemPrompt, userMessage, onChunk) {
+  const body = JSON.stringify({ systemPrompt, userMessage });
+  const headers = { 'Content-Type': 'application/json' };
+  let res;
+  try { res = await fetch(`${AI_BASE}/api/v1/stream`, { method: 'POST', headers, body }); } catch { res = null; }
+  if (res && res.status === 429) throw Object.assign(new Error('rate'), { rate: true });
+  if (res && res.ok && res.body) {
+    let full = '';
+    try {
+      const reader = res.body.getReader(); const dec = new TextDecoder();
+      for (;;) { const { done, value } = await reader.read(); if (done) break; full += dec.decode(value, { stream: true }); onChunk?.(full); }
+    } catch { /* stream broke — fall back below */ }
+    if (full.trim()) return full;
+  }
+  const r2 = await fetch(`${AI_BASE}/api/v1/tool`, { method: 'POST', headers, body });
+  if (r2.status === 429) throw Object.assign(new Error('rate'), { rate: true });
+  if (!r2.ok) throw new Error(`Server error: ${r2.status}`);
+  const data = await r2.json();
+  if (data.error) throw new Error(data.error);
+  return data.result;
+}
+function aiErrorMessage(err) {
+  if (err?.rate) return 'The Critic needs a minute — too many requests. Try again shortly.';
+  if (!navigator.onLine) return 'You’re offline. The Critic needs a connection; everything else works offline.';
+  return 'The Critic is unreachable right now. Your brief and prompts still work — paste them into any AI you use.';
+}
 
 function flash(msg) {
   const t = $('#toast'); t.textContent = msg; t.classList.add('show');

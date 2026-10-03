@@ -9,6 +9,8 @@
  *    year) so nobody is told "quit your job or do nothing".
  *  - `goal` completes the sentence "I use … to help ___" in the purpose
  *    statement, so it must read naturally there.
+ *  - `builds` are things that should exist but mostly don't — starting
+ *    points for an Explorer to commission (see conduct.js).
  *  - Ratings are coarse editorial judgements (1 = low, 3 = high) on the
  *    scale / neglect / solvability frame, not precise scores.
  */
@@ -97,6 +99,7 @@ export const PROBLEMS = [
   {
     id: 'extreme-poverty', name: 'Extreme poverty', emoji: '🌍', themes: ['poverty'],
     goal: 'end extreme poverty',
+    builds: ['A plain-language comparison of cash-transfer programmes a first-time donor can trust', 'A tool that helps a giving circle run its first 4-week research-and-give cycle'],
     why: 'Roughly 1 in 10 people live on less than about $3 a day. The share has fallen dramatically since 1990 — this is a problem humanity is actually beating, and money goes unusually far.',
     rating: { scale: 3, neglect: 2, solvable: 3 },
     sources: ['World Bank', 'Our World in Data'],
@@ -116,6 +119,7 @@ export const PROBLEMS = [
   {
     id: 'child-deaths', name: 'Preventable child deaths', emoji: '🦟', themes: ['health', 'poverty'],
     goal: 'stop children dying of preventable causes',
+    builds: ['A one-page explainer that makes the cost of saving a child concrete for a school or workplace', 'A fundraiser kit for birthdays and races that routes to proven child-health programmes'],
     why: 'Around 5 million children under five die each year, mostly from causes like malaria, pneumonia and diarrhoea that are cheap to prevent or treat.',
     rating: { scale: 3, neglect: 2, solvable: 3 },
     sources: ['UNICEF', 'WHO', 'GiveWell'],
@@ -135,6 +139,7 @@ export const PROBLEMS = [
   {
     id: 'climate', name: 'Climate change', emoji: '🔥', themes: ['climate', 'future'],
     goal: 'slow climate change',
+    builds: ['A household “biggest three emissions” calculator with one concrete next step each', 'A toolkit for neighbours to get heat pumps or community solar on one street'],
     why: 'Emissions are still near record highs, but clean energy is now the cheapest new power in most of the world. The decisive decades are this one and the next.',
     rating: { scale: 3, neglect: 1, solvable: 2 },
     sources: ['IPCC', 'IEA', 'Our World in Data'],
@@ -155,6 +160,7 @@ export const PROBLEMS = [
   {
     id: 'mental-health', name: 'Untreated mental illness', emoji: '🧠', themes: ['mind', 'health'],
     goal: 'get people the mental health care they need',
+    builds: ['A local directory of free and low-cost support that is actually kept up to date', 'A peer-support group starter kit with safe-guarding and crisis guidance built in'],
     why: 'Roughly 1 in 8 people live with a mental disorder, and in many countries most get no treatment at all. Low-cost, lay-delivered therapy is a growing, evidence-backed answer.',
     rating: { scale: 3, neglect: 3, solvable: 2 },
     sources: ['WHO', 'The Lancet Psychiatry'],
@@ -175,6 +181,7 @@ export const PROBLEMS = [
   {
     id: 'loneliness', name: 'Loneliness & isolation', emoji: '🫂', themes: ['mind', 'community'],
     goal: 'make sure nobody is left alone',
+    builds: ['A “host your first open dinner” kit with invites, prompts and follow-ups', 'A simple rota so a group of neighbours can check in on isolated older people'],
     why: 'A large share of adults in many countries say they often feel lonely, with older people and young adults hit hardest. Chronic isolation carries health risks comparable to well-known ones like smoking.',
     rating: { scale: 2, neglect: 3, solvable: 2 },
     sources: ['WHO Commission on Social Connection', 'US Surgeon General advisory'],
@@ -194,6 +201,7 @@ export const PROBLEMS = [
   {
     id: 'learning-poverty', name: 'Children who can’t read', emoji: '📖', themes: ['education', 'poverty'],
     goal: 'get every child reading',
+    builds: ['An offline phonics practice app for cheap phones in an under-served language', 'A volunteer reading-tutor pack: 10 sessions, assessment, progress chart'],
     why: 'In low- and middle-income countries, a majority of 10-year-olds cannot read a simple story. Structured teaching methods and teaching at the right level have strong evidence behind them.',
     rating: { scale: 3, neglect: 2, solvable: 3 },
     sources: ['World Bank (learning poverty)', 'UNESCO'],
@@ -213,6 +221,7 @@ export const PROBLEMS = [
   {
     id: 'factory-farming', name: 'Factory farming', emoji: '🐔', themes: ['animals', 'climate'],
     goal: 'end the suffering of factory-farmed animals',
+    builds: ['A 2-week plant-forward meal plan for one specific local cuisine', 'A tracker showing which local businesses have kept their welfare pledges'],
     why: 'Tens of billions of land animals, plus far more fish, are farmed each year, most in intensive conditions. Corporate welfare campaigns and alternative proteins have won real changes.',
     rating: { scale: 3, neglect: 3, solvable: 2 },
     sources: ['FAO', 'Our World in Data'],
@@ -232,6 +241,7 @@ export const PROBLEMS = [
   {
     id: 'ai-safety', name: 'Making AI go well', emoji: '🤖', themes: ['future'],
     goal: 'make AI go well for everyone',
+    builds: ['A responsible-AI guide for one profession, written with people in it', 'A short course that helps non-technical people evaluate AI tools at work'],
     why: 'AI is advancing quickly and will reshape work, science and power. Comparatively few people work on making it safe, fair and well-governed relative to the effort spent making it more capable.',
     rating: { scale: 3, neglect: 3, solvable: 2 },
     sources: ['International AI Safety Report', 'Stanford AI Index'],
@@ -251,6 +261,7 @@ export const PROBLEMS = [
   {
     id: 'pandemics', name: 'The next pandemic', emoji: '🦠', themes: ['future', 'health'],
     goal: 'make the next pandemic far less deadly',
+    builds: ['A guide for schools to measure and improve classroom air quality on a small budget', 'A community preparedness checklist with roles for each neighbour'],
     why: 'COVID showed how unprepared the world was. Better surveillance, faster vaccines, cleaner indoor air and biosecurity could make the next one far less deadly.',
     rating: { scale: 3, neglect: 2, solvable: 2 },
     sources: ['WHO', 'Johns Hopkins Center for Health Security'],
@@ -270,6 +281,7 @@ export const PROBLEMS = [
   {
     id: 'homelessness', name: 'Homelessness', emoji: '🏠', themes: ['community', 'poverty'],
     goal: 'get people into stable homes',
+    builds: ['A live map of shelters, meals and services that outreach workers can update from a phone', 'A plain-language “your rights before eviction” guide for one city'],
     why: 'Homelessness has risen in many cities as housing costs climb. “Housing First” approaches — a stable home first, support second — have good evidence for keeping people housed.',
     rating: { scale: 2, neglect: 2, solvable: 2 },
     sources: ['OECD Affordable Housing Database', 'Housing First evaluations'],
@@ -289,6 +301,7 @@ export const PROBLEMS = [
   {
     id: 'information', name: 'A broken information ecosystem', emoji: '📰', themes: ['future', 'justice', 'education'],
     goal: 'help people tell what is true',
+    builds: ['A lateral-reading lesson plan any teacher can run in 45 minutes', 'A weekly local newsletter on what the council actually decided'],
     why: 'Trust in shared facts is eroding, local news has shrunk in many places, and synthetic media is getting cheaper. Healthy democracies depend on people being able to tell what is true.',
     rating: { scale: 2, neglect: 2, solvable: 2 },
     sources: ['Reuters Institute Digital News Report'],
@@ -308,6 +321,7 @@ export const PROBLEMS = [
   {
     id: 'access-to-justice', name: 'Access to justice', emoji: '⚖️', themes: ['justice', 'poverty'],
     goal: 'give everyone access to justice',
+    builds: ['A guided form-filler for one common legal problem (e.g. a tenancy deposit claim)', 'A plain-language library of the 20 most confusing official letters and what to do'],
     why: 'Billions of people cannot get help with everyday legal problems — evictions, wages, family disputes, documents. Paralegal programmes and plain-language tools close part of that gap.',
     rating: { scale: 3, neglect: 3, solvable: 2 },
     sources: ['World Justice Project', 'OECD'],
@@ -327,6 +341,7 @@ export const PROBLEMS = [
   {
     id: 'biodiversity', name: 'Biodiversity loss', emoji: '🦋', themes: ['climate', 'animals'],
     goal: 'bring wildlife back',
+    builds: ['A street-by-street map of spaces that could be rewilded, with owners and contacts', 'A citizen-science challenge kit for a school term'],
     why: 'Monitored wildlife populations have declined steeply on average since 1970, driven mostly by land-use change. Protected areas and restoration work when they are well run and funded.',
     rating: { scale: 2, neglect: 2, solvable: 2 },
     sources: ['IPBES', 'WWF/ZSL Living Planet Index'],
@@ -346,6 +361,7 @@ export const PROBLEMS = [
   {
     id: 'water', name: 'Unsafe water & sanitation', emoji: '💧', themes: ['health', 'poverty'],
     goal: 'bring safe water to everyone',
+    builds: ['A donor explainer comparing water interventions by cost per outcome', 'A simple maintenance log that keeps community water points from breaking down unnoticed'],
     why: 'On the order of 2 billion people lack safely managed drinking water. Chlorination and water treatment are among the cheapest ways to save young children’s lives.',
     rating: { scale: 3, neglect: 2, solvable: 3 },
     sources: ['WHO/UNICEF JMP'],
@@ -365,6 +381,7 @@ export const PROBLEMS = [
   {
     id: 'displacement', name: 'Forced displacement', emoji: '🧳', themes: ['justice', 'poverty', 'community'],
     goal: 'help displaced people rebuild their lives',
+    builds: ['A newcomer’s first-30-days guide for one city, in their languages', 'A language-buddy matching sheet for a library or community centre'],
     why: 'Over 100 million people are forcibly displaced — a record. Language, work and a welcoming community make an enormous difference to how people rebuild their lives.',
     rating: { scale: 3, neglect: 2, solvable: 2 },
     sources: ['UNHCR Global Trends'],
@@ -384,6 +401,7 @@ export const PROBLEMS = [
   {
     id: 'food-insecurity', name: 'Hunger next door', emoji: '🥫', themes: ['community', 'poverty'],
     goal: 'make sure nobody near me goes hungry',
+    builds: ['A surplus-food pickup rota connecting shops to a community fridge', 'A checker that shows families which food support they qualify for'],
     why: 'Even in rich countries, many households skip meals to make ends meet, while a large share of food is wasted. Local food projects connect the two.',
     rating: { scale: 2, neglect: 1, solvable: 3 },
     sources: ['FAO', 'UNEP Food Waste Index'],
@@ -400,4 +418,37 @@ export const PROBLEMS = [
       year: ['Start or run a community fridge or pantry.', 'Work in food security policy or community food projects.'],
     },
   },
+];
+
+// ---------- Conduct: the Explorer of Purpose ----------
+// The Explorer doesn't do the grunt work of creation — machines increasingly
+// can. Their job is to set the North Star, decide what deserves to exist, and
+// make sure it is genuinely useful to a real person.
+
+// A brief must pass enough of these before the orchestra starts playing.
+export const USEFULNESS = [
+  { id: 'person',   q: 'I can name a real person who needs this.' },
+  { id: 'talked',   q: 'I have talked to (or watched) someone with this problem.' },
+  { id: 'today',    q: 'I know what they do today instead — and why that falls short.' },
+  { id: 'small',    q: 'There is a version small enough to help someone within a week.' },
+  { id: 'measure',  q: 'I know how I will tell whether it actually helped.' },
+  { id: 'harm',     q: 'I have thought about who it could hurt, and what it must never do.' },
+];
+export const READY_AT = 4;
+
+export const STAGES = [
+  { id: 'chart',   name: 'Charting',   hint: 'Deciding what should exist' },
+  { id: 'conduct', name: 'Conducting', hint: 'AI agents are building it' },
+  { id: 'ship',    name: 'Shipped',    hint: 'Real people can use it' },
+  { id: 'learn',   name: 'Learning',   hint: 'Measuring what changed' },
+];
+
+// The orchestra: roles the Explorer directs. Each becomes a ready-to-paste prompt.
+export const ROLES = [
+  { id: 'scout',     name: 'Scout',       emoji: '🧭', job: 'Find out what already exists so we don’t rebuild it, and who the real users are.' },
+  { id: 'architect', name: 'Architect',   emoji: '📐', job: 'Design the smallest version that is genuinely useful, and a plan to build it.' },
+  { id: 'builder',   name: 'Builder',     emoji: '🛠️', job: 'Build the first version from the Architect’s plan.' },
+  { id: 'critic',    name: 'Critic',      emoji: '🔍', job: 'Red-team it: harms, failure modes, and whether it is actually useful.' },
+  { id: 'measurer',  name: 'Measurer',    emoji: '📏', job: 'Define the evidence that it helped, and how to collect it cheaply.' },
+  { id: 'storyteller', name: 'Storyteller', emoji: '📣', job: 'Explain it to the people it is for, in their words.' },
 ];
