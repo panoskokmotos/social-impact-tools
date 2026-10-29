@@ -1,7 +1,7 @@
 /**
  * data.js — the Impact Compass Problem Atlas.
  *
- * Curated, structured content on 15 of the world's biggest problems.
+ * Curated, structured content on 25 of the world's biggest problems.
  * Editorial rules:
  *  - Every figure is approximate and phrased that way ("roughly", "on the
  *    order of"). Sources are named per problem; treat numbers as context,
