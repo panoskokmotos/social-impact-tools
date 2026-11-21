@@ -8,6 +8,21 @@ Shared chrome (tool-header, analytics) is single-sourced in `partials/` — run
 AI backend: the existing `ask-panos.*.workers.dev` Worker (CORS `*`), reused as-is;
 endpoints live in `shared.js`.
 
+## Purpose (`purpose/`)
+
+Served at `/purpose/`. **The source of truth is the separate
+[`panoskokmotos/purpose`](https://github.com/panoskokmotos/purpose) repo** — this
+folder is a deployed copy (synced at a7af7b8). Make changes there, then sync:
+
+```sh
+rm -rf purpose && mkdir purpose
+git -C ../purpose archive main | tar -x -C purpose
+rm -rf purpose/.github purpose/.gitignore
+```
+
+Self-contained, path-relative static app (no build). Its tests run in
+`.github/workflows/purpose-test.yml` (`npm test` in `purpose/`).
+
 ## Impact Compass (`compass/`)
 
 A standalone, installable PWA at `/compass/` — mission: increase knowledge and
